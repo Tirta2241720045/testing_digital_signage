@@ -1,0 +1,141 @@
+<a href="{% url 'upload_playlist' %}" class="upload-button">
+    <img src="/media/assets/upload.png" class="upload-icon" alt="Upload">
+    <span class="upload-text">Upload</span>
+</a>
+
+<style>
+.upload-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: 40px; 
+    text-decoration: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.upload-button:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    color: #ffffff;
+}
+
+.upload-button:active {
+    background: #1e40af;
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.upload-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+}
+
+.upload-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(288deg) brightness(102%) contrast(102%); /* white */
+}
+
+.upload-text {
+    font-weight: 600;
+    line-height: 1;
+}
+
+.upload-button.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.upload-button.loading .upload-icon {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.upload-button.outline {
+    background: transparent;
+    color: #2563eb;
+    border: 1px solid #2563eb;
+}
+
+.upload-button.outline:hover {
+    background: #2563eb;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.upload-button.secondary {
+    background: #6b7280;
+    color: #ffffff;
+}
+
+.upload-button.secondary:hover {
+    background: #4b5563;
+}
+
+.upload-button.large {
+    padding: 0 20px;
+    font-size: 15px;
+    height: 44px;
+}
+
+.upload-button.large .upload-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.upload-button.compact {
+    padding: 0 12px;
+    font-size: 13px;
+    height: 36px;
+}
+
+.upload-button.compact .upload-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.upload-button.icon-only {
+    padding: 0;
+    width: 40px;
+    justify-content: center;
+}
+
+.upload-button.icon-only .upload-text {
+    display: none;
+}
+
+.upload-button.full-width {
+    width: 100%;
+    justify-content: center;
+}
+
+@media (max-width: 480px) {
+    .upload-button {
+        padding: 0 12px;
+        font-size: 13px;
+        height: 36px;
+    }
+    
+    .upload-button .upload-icon {
+        width: 16px;
+        height: 16px;
+    }
+}
+</style>

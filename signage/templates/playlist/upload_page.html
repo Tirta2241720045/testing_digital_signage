@@ -1,0 +1,741 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="row g-2">
+    <div class="col-lg-3">
+      <div class="card border-0 shadow-sm mb-2" style="height: 250px;">
+        <div class="card-header bg-white py-3 border-bottom">
+          <div class="d-flex align-items-center">
+            <img src="/media/assets/lightbulb.png" alt="Tips" style="width: 18px; height: 18px; margin-right: 8px;">
+            <h6 class="mb-0 d-flex align-items-center">
+              <span class="ms-1">Playlist Tips</span>
+            </h6>
+          </div>
+        </div>
+        <div class="card-body p-3 overflow-auto">
+          <ul class="list-unstyled small mb-0">
+            <li class="mb-2 d-flex align-items-center">
+              <img src="/media/assets/accept.png" alt="Check" style="width: 14px; height: 14px; margin-right: 8px;">
+              <span>Add 1-5 items to your sequence</span>
+            </li>
+            <li class="mb-2 d-flex align-items-center">
+              <img src="/media/assets/accept.png" alt="Check" style="width: 14px; height: 14px; margin-right: 8px;">
+              <span>Set appropriate durations for each item</span>
+            </li>
+            <li class="mb-2 d-flex align-items-center">
+              <img src="/media/assets/accept.png" alt="Check" style="width: 14px; height: 14px; margin-right: 8px;">
+              <span>Device resolution will auto-set the compatible size</span>
+            </li>
+            <li class="mb-2 d-flex align-items-center">
+              <img src="/media/assets/accept.png" alt="Check" style="width: 14px; height: 14px; margin-right: 8px;">
+              <span>Set expiration date for time content</span>
+            </li>
+            <li class="d-flex align-items-center">
+              <img src="/media/assets/accept.png" alt="Check" style="width: 14px; height: 14px; margin-right: 8px;">
+              <span>Drag and drop to rearrange items easily</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="card border-0 shadow-sm" style="height: 400px;">
+        <div class="card-header bg-white py-3 border-bottom">
+          <div class="d-flex align-items-center">
+            <img src="/media/assets/playlist.png" alt="Playlist" style="width: 20px; height: 20px; margin-right: 8px;">
+            <h6 class="mb-0 d-flex align-items-center">
+              <span class="ms-1">Create Playlist</span>
+            </h6>
+          </div>
+        </div>
+        <div class="card-body p-3 d-flex flex-column h-100">
+          <form method="post" id="playlistForm" class="d-flex flex-column h-100" action="{% url 'upload_playlist' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Playlist Name</label>
+              {{ form.playlist_name }}
+              {% if form.playlist_name.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.playlist_name.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Device Selection</label>
+              {{ form.device }}
+              {% if form.device.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.device.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Expiration Date</label>
+              {{ form.expiration_date }}
+              {% if form.expiration_date.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.expiration_date.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
+            
+            <div id="sequenceData"></div>
+            
+            <div class="mt-auto">
+              <div class="d-flex gap-2">
+                <a href="{% url 'playlist' %}" class="btn btn-outline-secondary flex-grow-1 d-flex align-items-center justify-content-center">
+                  <img src="/media/assets/back.png" alt="Back" style="width: 14px; height: 14px; margin-right: 6px; filter: brightness(0) invert(0.4);">
+                  <span>Cancel</span>
+                </a>
+                <button type="submit" class="btn btn-primary flex-grow-1 d-flex align-items-center justify-content-center" id="saveBtn">
+                  <img src="/media/assets/save.png" alt="Save" style="width: 14px; height: 14px; margin-right: 6px; filter: brightness(0) invert(1);">
+                  <span>Save</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="card border-0 shadow-sm mb-2" style="height: 390px;">
+        <div class="card-header bg-white py-3 border-bottom">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+              <img src="/media/assets/content.png" alt="Content" style="width: 18px; height: 18px; margin-right: 8px;">
+              <h6 class="mb-0 d-flex align-items-center">
+                <span class="ms-1">Available Content</span>
+              </h6>
+            </div>
+            <div class="btn-group btn-group-sm">
+              <button id="showContentBtn" class="btn btn-sm btn-primary d-flex align-items-center">
+                <img src="/media/assets/image.png" alt="Content" style="width: 14px; height: 14px; margin-right: 4px; filter: brightness(0) invert(1);">
+                <span>Contents</span>
+              </button>
+              <button id="showPlaylistBtn" class="btn btn-sm btn-outline-primary d-flex align-items-center">
+                <img src="/media/assets/playlist.png" alt="Playlist" style="width: 14px; height: 14px; margin-right: 4px;">
+                <span>Playlists</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3" style="overflow-y:auto;height:calc(100% - 50px);">
+          <div id="contentsList" class="content-grid">
+            {% for content in contents %}
+            <div class="content-item draggable" data-id="{{ content.id }}" data-type="content" draggable="true">
+              <div class="media-container">
+                {% if content.file_type_content == 'Image' %}
+                <img src="{{ content.file.url }}" class="img-fluid">
+                {% else %}
+                <video class="img-fluid" muted>
+                  <source src="{{ content.file.url }}">
+                </video>
+                {% endif %}
+              </div>
+              <div class="content-name small">{{ content.content_name }}</div>
+            </div>
+            {% endfor %}
+          </div>
+          <div id="playlistsList" class="content-grid" style="display:none;">
+            {% for playlist in playlists %}
+            <div class="content-item draggable" data-id="{{ playlist.id }}" data-type="playlist" draggable="true">
+              <div class="media-container">
+                {% if playlist.file_type_playlist == 'Image' %}
+                <img src="{{ playlist.file.url }}" class="img-fluid">
+                {% else %}
+                <video class="img-fluid" muted>
+                  <source src="{{ playlist.file.url }}">
+                </video>
+                {% endif %}
+              </div>
+              <div class="content-name small">{{ playlist.playlist_name }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="card border-0 shadow-sm" style="height: 260px;">
+        <div class="card-header bg-white py-3 border-bottom">
+          <div class="d-flex align-items-center">
+            <img src="/media/assets/sequence.png" alt="Sequence" style="width: 18px; height: 18px; margin-right: 8px;">
+            <h6 class="mb-0 d-flex align-items-center">
+              <span class="ms-1">Sequence</span>
+            </h6>
+          </div>
+        </div>
+        <div class="card-body p-3" style="overflow-y:auto;height:calc(100% - 50px);">
+          <div id="dropSequence" class="sequence-grid">
+            {% for i in "12345"|make_list %}
+            <div class="sequence-item drop-zone" data-sequence="{{ i }}">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-primary py-1 px-2">{{ i }}</span>
+                <button class="btn p-0 border-0 remove-btn">
+                  <img src="/media/assets/trash.png" style="width:16px;height:16px;">
+                </button>
+              </div>
+              <div class="aspect-ratio-box">
+                <div class="drop-placeholder">
+                  <img src="/media/assets/drop_here.png" style="width:24px;height:24px;">
+                </div>
+                <div class="dropped-content"></div>
+              </div>
+              <div class="duration-controls mt-2">
+                <div class="d-flex align-items-center justify-content-end gap-1">
+                  <input type="number" class="form-control form-control-sm hours" min="0" max="23" value="0" style="width:40px; padding: 0.15rem 0.25rem;">
+                  <small>h</small>
+                  <input type="number" class="form-control form-control-sm minutes" min="0" max="59" value="0" style="width:40px; padding: 0.15rem 0.25rem;">
+                  <small>m</small>
+                  <input type="number" class="form-control form-control-sm seconds" min="0" max="59" value="10" style="width:40px; padding: 0.15rem 0.25rem;">
+                  <small>s</small>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-body text-center p-5">
+        <div class="mb-4">
+          <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <h5 class="mb-3">Creating Your Playlist</h5>
+        <p class="text-muted mb-4" id="processingStatus">Preparing video processing...</p>
+        <div class="progress mb-3" style="height: 8px;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" 
+               role="progressbar" 
+               style="width: 0%" 
+               id="progressBar">
+          </div>
+        </div>
+        <small class="text-muted">Please wait while we process your playlist. This may take a few minutes.</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+:root {
+  --primary-color: #4361ee;
+  --secondary-color: #3f37c9;
+  --accent-color: #4895ef;
+  --light-color: #f8f9fa;
+  --dark-color: #212529;
+  --success-color: #4cc9f0;
+  --warning-color: #f8961e;
+  --danger-color: #f72585;
+  --header-gradient-start: #f7f7f7;
+  --header-gradient-end: #dcdcdc;
+  --card-bg: #ffffff;
+  --preview-placeholder: #f5f5f5; 
+}
+
+.card {
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+  border: none;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(67, 97, 238, 0.15) !important;
+}
+
+.card-header {
+  background: linear-gradient(135deg, 
+    var(--header-gradient-start) 0%, 
+    var(--header-gradient-end) 100%) !important;
+  border-bottom: 1px solid rgba(222, 226, 230, 0.5);
+}
+
+.form-control, .form-select {
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.25rem rgba(72, 149, 239, 0.25);
+  background-color: white;
+}
+
+.btn {
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+  transform: translateY(-3px);
+}
+
+.btn-outline-secondary {
+  border: 1px solid #dee2e6;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 6px;
+}
+
+.sequence-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  height: 100%;
+}
+
+.content-item {
+  cursor: pointer;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 8px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.content-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(67, 97, 238, 0.1);
+}
+
+.media-container {
+  height: 100px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-container img,
+.media-container video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.content-name {
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sequence-item {
+  border: 2px dashed rgba(67, 97, 238, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sequence-item.drag-over {
+  border-color: var(--accent-color);
+  background-color: rgba(67, 97, 238, 0.05);
+}
+
+.aspect-ratio-box {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.aspect-ratio-box > div {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropped-content {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+.dropped-content img,
+.dropped-content video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.duration-controls {
+  display: none;
+}
+
+.sequence-item.filled .drop-placeholder {
+  display: none;
+}
+
+.sequence-item.filled .dropped-content {
+  display: flex;
+}
+
+.sequence-item.filled .duration-controls {
+  display: flex;
+}
+
+.remove-btn {
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.remove-btn:hover {
+  opacity: 1;
+}
+
+.badge {
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.form-control-sm {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.25rem;
+  height: calc(1.5em + 0.5rem);
+}
+
+.invalid-feedback.d-block {
+  font-size: 0.75rem;
+  color: #dc3545;
+  margin-top: 0.25rem;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.btn-outline-secondary img {
+  filter: brightness(0) invert(0.4); 
+  transition: filter 0.2s ease;
+}
+
+.btn-outline-secondary:hover img {
+  filter: brightness(0) invert(1); 
+}
+
+.progress {
+  border-radius: 10px;
+  background-color: rgba(67, 97, 238, 0.1);
+}
+
+.progress-bar {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.modal-content {
+  border-radius: 15px;
+}
+
+.modal-body {
+  border-radius: 15px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+  
+  const statusMessages = [
+    "Preparing video processing...",
+    "Processing sequence items...",
+    "Resizing and optimizing videos...",
+    "Applying compression settings...",
+    "Concatenating video segments...",
+    "Finalizing playlist creation...",
+    "Almost ready..."
+  ];
+  
+  let currentMessageIndex = 0;
+  let progressInterval;
+  let currentProgress = 0;
+  
+  const toggleButtons = {
+    content: document.getElementById('showContentBtn'),
+    playlist: document.getElementById('showPlaylistBtn')
+  };
+  
+  const contentLists = {
+    content: document.getElementById('contentsList'),
+    playlist: document.getElementById('playlistsList')
+  };
+
+  toggleButtons.content.addEventListener('click', () => {
+    contentLists.content.style.display = 'grid';
+    contentLists.playlist.style.display = 'none';
+    toggleButtons.content.classList.replace('btn-outline-primary', 'btn-primary');
+    toggleButtons.playlist.classList.replace('btn-primary', 'btn-outline-primary');
+    toggleButtons.content.querySelector('img').style.filter = 'brightness(0) invert(1)';
+    toggleButtons.playlist.querySelector('img').style.filter = 'none';
+  });
+
+  toggleButtons.playlist.addEventListener('click', () => {
+    contentLists.content.style.display = 'none';
+    contentLists.playlist.style.display = 'grid';
+    toggleButtons.playlist.classList.replace('btn-outline-primary', 'btn-primary');
+    toggleButtons.content.classList.replace('btn-primary', 'btn-outline-primary');
+    toggleButtons.playlist.querySelector('img').style.filter = 'brightness(0) invert(1)';
+    toggleButtons.content.querySelector('img').style.filter = 'none';
+  });
+
+  let draggedItem = null;
+  const playlistSequence = {};
+
+  function initializeDragEvents() {
+    document.querySelectorAll('.draggable').forEach(item => {
+      item.addEventListener('dragstart', function(e) {
+        draggedItem = {
+          id: this.dataset.id,
+          type: this.dataset.type,
+          html: this.querySelector('.media-container').innerHTML
+        };
+        this.classList.add('dragging');
+      });
+      
+      item.addEventListener('dragend', function() {
+        this.classList.remove('dragging');
+      });
+    });
+  }
+
+  initializeDragEvents();
+
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('drag-over');
+    });
+
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      
+      if (draggedItem) {
+        const sequence = zone.dataset.sequence;
+        playlistSequence[sequence] = {
+          contentId: draggedItem.id,
+          contentType: draggedItem.type
+        };
+        
+        zone.classList.add('filled');
+        zone.querySelector('.dropped-content').innerHTML = draggedItem.html;
+        zone.querySelector('.dropped-content').style.display = 'flex';
+        zone.querySelector('.drop-placeholder').style.display = 'none';
+        zone.querySelector('.duration-controls').style.display = 'flex';
+        
+        const video = zone.querySelector('.dropped-content video');
+        if (video) {
+          video.addEventListener('mouseenter', () => video.play());
+          video.addEventListener('mouseleave', () => {
+            video.pause();
+            video.currentTime = 0;
+          });
+        }
+        
+        updateSequenceData();
+      }
+    });
+
+    zone.querySelector('.remove-btn').addEventListener('click', function() {
+      const sequence = zone.dataset.sequence;
+      delete playlistSequence[sequence];
+      
+      zone.classList.remove('filled');
+      zone.querySelector('.dropped-content').innerHTML = '';
+      zone.querySelector('.dropped-content').style.display = 'none';
+      zone.querySelector('.drop-placeholder').style.display = 'flex';
+      zone.querySelector('.duration-controls').style.display = 'none';
+      
+      updateSequenceData();
+    });
+
+    zone.querySelectorAll('.hours, .minutes, .seconds').forEach(input => {
+      input.addEventListener('change', updateSequenceData);
+    });
+  });
+
+  function updateSequenceData() {
+    const container = document.getElementById('sequenceData');
+    container.innerHTML = '';
+    
+    Object.entries(playlistSequence).forEach(([seq, item]) => {
+      const zone = document.querySelector(`[data-sequence="${seq}"]`);
+      if (zone) {
+        const hours = zone.querySelector('.hours').value || 0;
+        const minutes = zone.querySelector('.minutes').value || 0;
+        const seconds = zone.querySelector('.seconds').value || 10;
+        
+        container.innerHTML += `
+          <input type="hidden" name="sequence_${seq}_content_id" value="${item.contentId}">
+          <input type="hidden" name="sequence_${seq}_content_type" value="${item.contentType}">
+          <input type="hidden" name="sequence_${seq}_duration_hours" value="${hours}">
+          <input type="hidden" name="sequence_${seq}_duration_minutes" value="${minutes}">
+          <input type="hidden" name="sequence_${seq}_duration_seconds" value="${seconds}">
+        `;
+      }
+    });
+  }
+
+  function updateProgressBar() {
+    const progressBar = document.getElementById('progressBar');
+    const statusElement = document.getElementById('processingStatus');
+    
+    const progressSteps = [10, 25, 40, 60, 75, 85, 95];
+    const stepDuration = 3000; 
+    
+    if (currentProgress < progressSteps.length) {
+      const targetProgress = progressSteps[currentProgress];
+      progressBar.style.width = targetProgress + '%';
+      
+      if (currentMessageIndex < statusMessages.length - 1) {
+        statusElement.textContent = statusMessages[currentMessageIndex];
+        currentMessageIndex++;
+      }
+      
+      currentProgress++;
+      
+      const nextUpdate = stepDuration + (Math.random() * 2000 - 1000); 
+      progressInterval = setTimeout(updateProgressBar, nextUpdate);
+    }
+  }
+
+  function startProgressSimulation() {
+    currentProgress = 0;
+    currentMessageIndex = 0;
+    
+    const progressBar = document.getElementById('progressBar');
+    const statusElement = document.getElementById('processingStatus');
+    
+    progressBar.style.width = '0%';
+    statusElement.textContent = statusMessages[0];
+    
+    progressInterval = setTimeout(updateProgressBar, 1000);
+  }
+
+  function stopProgressSimulation() {
+    if (progressInterval) {
+      clearTimeout(progressInterval);
+    }
+    
+    const progressBar = document.getElementById('progressBar');
+    const statusElement = document.getElementById('processingStatus');
+    
+    progressBar.style.width = '100%';
+    statusElement.textContent = 'Processing complete!';
+  }
+
+  document.getElementById('playlistForm').addEventListener('submit', function(e) {
+    updateSequenceData();
+    
+    if (Object.keys(playlistSequence).length === 0) {
+      e.preventDefault();
+      alert('Please add at least one item to the sequence');
+      return false;
+    }
+
+    loadingModal.show();
+    startProgressSimulation();
+
+    const submitButton = document.getElementById('saveBtn');
+    submitButton.disabled = true;
+    
+  });
+
+  document.querySelectorAll('#contentsList video, #playlistsList video').forEach(video => {
+    video.addEventListener('mouseenter', () => video.play());
+    video.addEventListener('mouseleave', () => {
+      video.pause();
+      video.currentTime = 0;
+    });
+  });
+
+  const expirationInput = document.querySelector('input[name="expiration_date"]');
+  if (expirationInput) {
+    const now = new Date();
+    const timezoneOffset = now.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(now - timezoneOffset).toISOString().slice(0, 16);
+    expirationInput.min = localISOTime;
+  }
+
+  const deviceSelect = document.querySelector('select[name="device"]');
+  if (deviceSelect) {
+    deviceSelect.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      if (selectedOption && selectedOption.dataset.resolution) {
+        console.log('Selected device resolution:', selectedOption.dataset.resolution);
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

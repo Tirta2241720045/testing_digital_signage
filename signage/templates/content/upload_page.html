@@ -1,0 +1,617 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-lg-8 pe-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+          <div class="d-flex align-items-center">
+            <div class="upload-icon me-3">
+              <img src="/media/assets/upload.png" alt="Upload Icon" style="width: 50px; height: 50px;">
+            </div>
+            <div>
+              <h2 class="h5 mb-0">Content Upload</h2>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body p-4" style="min-height: 550px;">
+          <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <div class="mb-4">
+              <label for="{{ form.content_name.id_for_label }}" class="form-label fw-semibold">
+                Content Name
+              </label>
+              {{ form.content_name }}
+              <div class="invalid-feedback">
+                Please provide a descriptive name
+              </div>
+            </div>
+            
+            <div class="mb-4 flex-grow-1">
+              <label class="form-label fw-semibold">
+                Select File (Images/Video only, max 10MB)
+              </label>
+              
+              <div class="file-upload-wrapper">
+                <div class="file-drop-area" id="fileDropArea">
+                  {{ form.file }}
+                  <div class="file-drop-content text-center py-4">
+                    <img src="/media/assets/upload2.png" alt="Upload" class="mb-3" style="width: 50px; height: 50px;">
+                    <p class="mb-2">Drag & Drop your file here</p>
+                    <p class="small text-muted mb-2">or click to browse</p>
+                  </div>
+                </div>
+                <div class="invalid-feedback">
+                  Please select a valid image or video file (max 10MB)
+                </div>
+              </div>
+            </div>
+            
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="{{ form.device.id_for_label }}" class="form-label fw-semibold">
+                  Device Selection
+                </label>
+                {{ form.device }}
+                <div class="form-text small text-muted">
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <label for="{{ form.expiration_date.id_for_label }}" class="form-label fw-semibold">
+                  Expiration Date
+                </label>
+                <div class="datetime-input-wrapper">
+                  {{ form.expiration_date }}
+                </div>
+                <div class="form-text small text-muted">
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+              <a href="{% url 'content' %}" class="btn btn-outline-secondary d-flex align-items-center">
+                <img src="/media/assets/back.png" alt="Back" class="back-icon" style="width: 16px; height: 16px; margin-right: 8px;">
+                <span>Back</span>
+              </a>
+              
+              <button type="submit" class="btn btn-primary px-4 d-flex align-items-center" id="uploadBtn">
+                <img src="/media/assets/upload1.png" alt="Upload" style="width: 16px; height: 16px; margin-right: 8px; filter: brightness(0) invert(1);">
+                <span>Upload</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white py-2 border-bottom">
+          <h6 class="mb-0 d-flex align-items-center">
+            <img src="/media/assets/lightbulb.png" alt="Tips" class="icon-align" style="width: 18px; height: 18px;">
+            <span class="ms-2">Upload Tips</span>
+          </h6>
+        </div>
+        <div class="card-body py-2 px-3">
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="d-flex align-items-center">
+                <img src="/media/assets/accept.png" alt="Check" class="icon-align" style="width: 14px; height: 14px;">
+                <small class="text-muted ms-2">Descriptive names</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="d-flex align-items-center">
+                <img src="/media/assets/accept.png" alt="Check" class="icon-align" style="width: 14px; height: 14px;">
+                <small class="text-muted ms-2">JPG, PNG, MP4 only</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="d-flex align-items-center">
+                <img src="/media/assets/accept.png" alt="Check" class="icon-align" style="width: 14px; height: 14px;">
+                <small class="text-muted ms-2">Max 10MB</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="d-flex align-items-center">
+                <img src="/media/assets/accept.png" alt="Check" class="icon-align" style="width: 14px; height: 14px;">
+                <small class="text-muted ms-2">Auto-optimization</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card border-0 shadow-sm preview-card" style="height: 600px;">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h5 class="mb-0 d-flex align-items-center">
+            <img src="/media/assets/eye.png" alt="Preview" class="icon-align" style="width: 18px; height: 18px;">
+            <span class="ms-2">Preview Area</span>
+          </h5>
+        </div>
+        <div class="card-body p-3 d-flex flex-column" style="height: calc(100% - 80px);">
+          <div class="preview-container flex-grow-1" id="previewContainer">
+            <div class="preview-placeholder text-center py-5 bg-light rounded" id="sidePreviewPlaceholder">
+              <img src="/media/assets/image.png" alt="Image" class="mb-3" style="width: 40px; height: 40px;">
+              <p class="text-muted mb-0">File preview will appear here</p>
+            </div>
+            <div class="preview-content" id="sidePreviewContent" style="display: none;">
+              <div class="preview-wrapper" id="sideFilePreview"></div>
+            </div>
+          </div>
+          <div class="file-info mt-3 small text-muted" id="sideFileInfo">
+            <div class="d-flex justify-content-between mb-2">
+              <strong>File:</strong>
+              <span class="text-truncate">-</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <strong>Type:</strong>
+              <span>-</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <strong>Size:</strong>
+              <span>-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  :root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --accent-color: #4895ef;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --success-color: #4cc9f0;
+    --warning-color: #f8961e;
+    --danger-color: #f72585;
+    --header-gradient-start: #f7f7f7;
+    --header-gradient-end: #dcdcdc;
+    --card-bg: #ffffff;
+    --preview-placeholder: #f5f5f5; 
+  }
+  
+  .card {
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+    border: none;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(67, 97, 238, 0.15) !important;
+  }
+  
+  .card-header {
+    background: linear-gradient(135deg, 
+      var(--header-gradient-start) 0%, 
+      var(--header-gradient-end) 100%) !important;
+    border-bottom: 1px solid rgba(222, 226, 230, 0.5);
+  }
+  
+  .form-control, .form-select {
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(72, 149, 239, 0.25);
+    background-color: white;
+  }
+  
+  .file-upload-wrapper {
+    position: relative;
+    flex-grow: 1;
+  }
+  
+  .file-drop-area {
+    position: relative;
+    border: 3px dashed rgba(128, 128, 128, 0.3);
+    border-radius: 12px;
+    background: rgba(248, 249, 250, 0.5);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .file-drop-area input[type="file"] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  
+  .file-drop-area:hover {
+    border-color: var(--accent-color);
+    background: rgba(240, 240, 240, 0.7);
+  }
+  
+  .datetime-input-wrapper {
+    position: relative;
+  }
+  
+  .datetime-input-wrapper input {
+    cursor: pointer;
+  }
+  
+  .preview-card {
+    height: 600px !important;
+  }
+  
+  .preview-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .preview-placeholder {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    border: 2px dashed rgba(67, 97, 238, 0.3);
+    background: var(--preview-placeholder) !important;
+  }
+  
+  .preview-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .preview-wrapper {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #f8f9fa;
+    border-radius: 8px;
+    min-height: 300px;
+    max-height: 400px;
+    position: relative;
+  }
+  
+  .preview-wrapper img,
+  .preview-wrapper video {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 6px;
+  }
+  
+  .file-info {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  
+  .btn {
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: none;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+    transform: translateY(-3px);
+  }
+  
+  @media (max-width: 992px) {
+    .preview-card {
+      height: auto !important;
+      min-height: auto !important;
+    }
+    
+    .card-body {
+      background-color: var(--card-bg) !important;
+      min-height: auto !important;
+    }
+    
+    .preview-container {
+      min-height: 400px;
+    }
+  }
+
+  .btn-outline-secondary .back-icon {
+    filter: brightness(0) invert(0.4); 
+    transition: filter 0.2s ease;
+  }
+  
+  .btn-outline-secondary:hover .back-icon {
+    filter: brightness(0) invert(1); 
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileDropArea = document.getElementById('fileDropArea');
+    const sidePreviewPlaceholder = document.getElementById('sidePreviewPlaceholder');
+    const sidePreviewContent = document.getElementById('sidePreviewContent');
+    const sideFilePreview = document.getElementById('sideFilePreview');
+    const sideFileInfo = document.getElementById('sideFileInfo');
+    const expirationInput = document.querySelector('input[name="expiration_date"]');
+    
+    if (expirationInput) {
+      const now = new Date();
+      const timezoneOffset = now.getTimezoneOffset() * 60000;
+      const localISOTime = new Date(now - timezoneOffset).toISOString().slice(0, 16);
+      expirationInput.min = localISOTime;
+      
+      document.querySelector('form').addEventListener('submit', function(e) {
+        if (expirationInput.value) {
+          const selectedDate = new Date(expirationInput.value);
+          if (selectedDate < now) {
+            e.preventDefault();
+            alert('Expiration datetime cannot be in the past');
+            expirationInput.focus();
+            return;
+          }
+        }
+      });
+    }
+
+    fileDropArea.addEventListener('click', function(e) {
+      if (e.target === fileDropArea || e.target.closest('.file-drop-content')) {
+        fileInput.click();
+      }
+    });
+    
+    fileInput.addEventListener('change', function(e) {
+      if (e.target.files.length > 0) {
+        handleFileSelection(e.target.files[0]);
+      }
+    });
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      fileDropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      fileDropArea.addEventListener(eventName, function() {
+        fileDropArea.classList.add('active');
+      }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      fileDropArea.addEventListener(eventName, function() {
+        fileDropArea.classList.remove('active');
+      }, false);
+    });
+    
+    fileDropArea.addEventListener('drop', function(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      
+      if (files.length > 0) {
+        fileInput.files = files;
+        handleFileSelection(files[0]);
+      }
+    }, false);
+    
+    function handleFileSelection(file) {
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
+      const maxSize = 10 * 1024 * 1024; 
+      
+      if (!validTypes.includes(file.type)) {
+        showAlert('Only JPG, PNG, WEBP, MP4, WEBM, MOV, and AVI files are allowed', 'error');
+        fileInput.value = '';
+        return;
+      }
+      
+      if (file.size > maxSize) {
+        showAlert(`File size exceeds 10MB limit. Your file: ${(file.size/1024/1024).toFixed(1)}MB`, 'error');
+        fileInput.value = '';
+        return;
+      }
+      
+      sideFileInfo.innerHTML = `
+        <div class="d-flex justify-content-between mb-2">
+          <strong>File:</strong>
+          <span class="text-truncate" title="${file.name}">${file.name}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <strong>Type:</strong>
+          <span>${file.type.split('/')[1].toUpperCase()}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <strong>Size:</strong>
+          <span>${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+        </div>
+      `;
+      
+      sidePreviewPlaceholder.style.display = 'none';
+      sidePreviewContent.style.display = 'flex';
+      sideFilePreview.innerHTML = '';
+      
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.className = 'preview-fade-in';
+          img.onload = function() {
+            const containerWidth = sideFilePreview.clientWidth;
+            const containerHeight = sideFilePreview.clientHeight;
+            const imgWidth = img.naturalWidth;
+            const imgHeight = img.naturalHeight;
+            
+            const widthRatio = containerWidth / imgWidth;
+            const heightRatio = containerHeight / imgHeight;
+            const scale = Math.min(widthRatio, heightRatio, 1);
+            
+            img.style.width = (imgWidth * scale) + 'px';
+            img.style.height = (imgHeight * scale) + 'px';
+            img.style.objectFit = 'contain';
+          };
+          sideFilePreview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      } else if (file.type.startsWith('video/')) {
+        const videoURL = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.controls = true;
+        video.className = 'preview-fade-in';
+        video.onloadedmetadata = function() {
+          const containerWidth = sideFilePreview.clientWidth;
+          const containerHeight = sideFilePreview.clientHeight;
+          const videoWidth = video.videoWidth;
+          const videoHeight = video.videoHeight;
+          
+          const widthRatio = containerWidth / videoWidth;
+          const heightRatio = containerHeight / videoHeight;
+          const scale = Math.min(widthRatio, heightRatio, 1);
+          
+          video.style.width = (videoWidth * scale) + 'px';
+          video.style.height = (videoHeight * scale) + 'px';
+          video.style.objectFit = 'contain';
+        };
+        
+        const source = document.createElement('source');
+        source.src = videoURL;
+        source.type = file.type;
+        
+        video.appendChild(source);
+        sideFilePreview.appendChild(video);
+      }
+      
+      showAlert('File ready for upload!', 'success');
+    }
+    
+    function showAlert(message, type) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+      alertDiv.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        min-width: 300px;
+        animation: slideIn 0.5s ease-out;
+      `;
+      
+      alertDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+          <img src="/media/assets/${type === 'success' ? 'accept' : 'exclamation'}.png" 
+               alt="${type === 'success' ? 'Success' : 'Error'}" 
+               style="width: 16px; height: 16px; margin-right: 8px;">
+          <span>${message}</span>
+          <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+      `;
+      
+      document.body.appendChild(alertDiv);
+      
+      setTimeout(() => {
+        alertDiv.style.animation = 'fadeOut 0.5s ease-out';
+        setTimeout(() => {
+          alertDiv.remove();
+        }, 500);
+      }, 4000);
+    }
+    
+    const form = document.querySelector('form');
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    form.addEventListener('submit', function(e) {
+      const contentName = document.querySelector('input[name="content_name"]').value.trim();
+      const fileInput = document.querySelector('input[name="file"]');
+      
+      if (!contentName || !fileInput.files.length) {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert('Please provide a content name and select a file', 'error');
+        form.classList.add('was-validated');
+        return;
+      }
+      
+      if (!form.checkValidity()) {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert('Please fill in all required fields correctly', 'error');
+      } else {
+        uploadBtn.innerHTML = '<span class="loading-spinner me-2"></span>Processing & Uploading...';
+        uploadBtn.disabled = true;
+        showAlert('Processing file, please wait...', 'success');
+      }
+      form.classList.add('was-validated');
+    });
+    
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      .preview-fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .file-drop-area.active {
+        border-color: var(--accent-color);
+        background: rgba(72, 149, 239, 0.1);
+      }
+    `;
+    document.head.appendChild(style);
+  });
+</script>
+{% endblock %}

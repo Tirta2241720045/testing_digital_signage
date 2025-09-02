@@ -1,0 +1,564 @@
+<div class="modal fade" id="SignupModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 600px; margin-left: 650px;">
+    <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+      <div class="modal-header justify-content-center text-center border-0">
+        <div>
+          <h5 class="modal-title fw-bold" style="color:#2c3e50;">Create Your Account</h5>
+          <small style="color:#7f8c8d;">Join our community today</small>
+        </div>
+      </div>
+
+      <form method="post"
+            id="signupForm"
+            class="needs-validation"
+            novalidate
+            action="{% url 'signup' %}?modal=true"
+            autocomplete="off">
+        {% csrf_token %}
+        <input type="hidden" name="modal" value="true">
+
+        <div class="modal-body">
+          <div id="globalAlert" class="alert d-none mb-3" style="border-radius:8px; padding:12px 16px; font-size:.85rem; border:none; animation:slideDown .3s ease;">
+            <div class="d-flex align-items-center">
+              <i class="alert-icon me-2" style="font-size:1rem;"></i>
+              <div class="alert-message flex-grow-1"></div>
+              <button type="button" class="btn-close btn-close-sm ms-2" onclick="hideGlobalAlert()" style="font-size:.7rem;"></button>
+            </div>
+          </div>
+
+          <style>
+            #SignupModal .modal-dialog {
+              max-width: 600px;
+              margin: 1.75rem auto;
+              top: auto; bottom: auto; left: auto; right: auto; transform: none;
+            }
+            @media (min-width: 992px) { #SignupModal .modal-dialog { max-width: 600px; } }
+
+            .offscreen-bait{position:absolute!important;left:-10000px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
+            .form-control::placeholder,input::placeholder,textarea::placeholder{color:#98a2b3!important;opacity:1!important}
+            .form-control::-webkit-input-placeholder,input::-webkit-input-placeholder{color:#98a2b3!important;opacity:1!important}
+            .form-control::-moz-placeholder,input::-moz-placeholder{color:#98a2b3!important;opacity:1!important}
+            .form-control:-ms-input-placeholder,input:-ms-input-placeholder{color:#98a2b3!important;opacity:1!important}
+            @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+            @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+            .field-error{border-color:#e74c3c!important;box-shadow:0 0 0 .1rem rgba(231,76,60,.25)!important}
+            .field-success{border-color:#27ae60!important;box-shadow:0 0 0 .1rem rgba(39,174,96,.25)!important}
+            .shake-animation{animation:shake .5s ease-in-out}
+            .btn:disabled{opacity:.7;cursor:not-allowed}
+            .field-error-message{color:#e74c3c;font-size:.75rem;margin-top:4px;display:flex;align-items:center;animation:slideDown .3s ease}
+            .field-error-message::before{content:"⚠";margin-right:4px;font-size:.8rem}
+            .password-strength .progress{height:4px;background-color:#f1f2f6;border-radius:2px}
+            .password-strength .progress-bar.bg-danger{background:linear-gradient(90deg,#dc3545,#e55a5a)!important}
+            .password-strength .progress-bar.bg-warning{background:linear-gradient(90deg,#ffc107,#ffca2c)!important}
+            .password-strength .progress-bar.bg-success{background:linear-gradient(90deg,#28a745,#34ce57)!important}
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            .success-feedback {
+                animation: pulse 0.5s ease;
+                background-color: #2ecc71 !important;
+                box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.3) !important;
+            }
+          </style>
+
+          <div class="offscreen-bait" aria-hidden="true">
+            <input type="text" name="username_bait" class="bait" autocomplete="username" tabindex="-1">
+            <input type="email" name="email_bait" class="bait" autocomplete="email" tabindex="-1">
+            <input type="password" name="password_bait" class="bait" autocomplete="new-password" tabindex="-1">
+          </div>
+
+          <div class="row g-2">
+            <div class="col-md-6 mb-2">
+              <label for="id_first_name" class="form-label" style="color:#2c3e50;font-weight:500;font-size:.85rem;margin-bottom:4px;">Full Name</label>
+              <input type="text" id="id_first_name" name="first_name" class="form-control"
+                     placeholder="Budi Santoso Priadi"
+                     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                     required minlength="2" pattern="[A-Za-z\s'\-\.]{2,150}"
+                     style="background:#f8f9fa;color:#2c3e50;border:1px solid #dfe6e9;border-radius:6px;padding:10px 12px;font-size:.9rem;height:42px;">
+              <div class="field-error-message" style="display:none;"></div>
+            </div>
+
+            <div class="col-md-6 mb-2">
+              <label for="id_last_name" class="form-label" style="color:#2c3e50;font-weight:500;font-size:.85rem;margin-bottom:4px;">Position</label>
+              <input type="text" id="id_last_name" name="last_name" class="form-control"
+                     placeholder="Software Engineer"
+                     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                     required minlength="2" pattern="[A-Za-z\s'\-\.]{2,150}" maxlength="150"
+                     style="background:#f8f9fa;color:#2c3e50;border:1px solid #dfe6e9;border-radius:6px;padding:10px 12px;font-size:.9rem;height:42px;">
+              <div class="field-error-message" style="display:none;"></div>
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label for="id_email" class="form-label" style="color:#2c3e50;font-weight:500;font-size:.85rem;margin-bottom:4px;">Email</label>
+            <input type="email" id="id_email" name="email" class="form-control"
+                   placeholder="your@gmail.com"
+                   autocomplete="off" inputmode="email" autocorrect="off" autocapitalize="off" spellcheck="false"
+                   required
+                   style="background:#f8f9fa;color:#2c3e50;border:1px solid #dfe6e9;border-radius:6px;padding:10px 12px;font-size:.9rem;height:42px;">
+            <div class="field-error-message" style="display:none;"></div>
+          </div>
+
+          <div class="mb-2">
+            <label for="id_username" class="form-label" style="color:#2c3e50;font-weight:500;font-size:.85rem;margin-bottom:4px;">Username</label>
+            <div class="input-group" style="height:42px;">
+              <span class="input-group-text" style="background:#f8f9fa;color:#7f8c8d;border:1px solid #dfe6e9;border-right:none;border-radius:6px 0 0 6px;padding:10px 12px;font-size:.9rem;">@</span>
+              <input type="text" id="id_username" name="username" class="form-control"
+                     placeholder="username"
+                     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                     required pattern="^[A-Za-z0-9]{4,20}$" minlength="4" maxlength="20"
+                     style="background:#f8f9fa;color:#2c3e50;border:1px solid #dfe6e9;border-left:none;border-radius:0 6px 6px 0;padding:10px 12px;font-size:.9rem;height:100%;">
+            </div>
+            <div class="field-error-message" style="display:none;"></div>
+          </div>
+
+          <div class="mb-2">
+            <label for="id_password1" class="form-label" style="color:#2c3e50;font-weight:500;font-size:.85rem;margin-bottom:4px;">Password</label>
+            <div class="input-group" style="height:42px;">
+              <input type="password" id="id_password1" name="password1" class="form-control"
+                     placeholder="••••••••"
+                     autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"
+                     required minlength="8"
+                     style="background:#f8f9fa;color:#2c3e50;border:1px solid #dfe6e9;border-radius:6px 0 0 6px;padding:10px 12px;font-size:.9rem;height:100%;">
+              <button class="btn btn-outline-secondary toggle-password" type="button"
+                      style="border:1px solid #dfe6e9;border-left:none;border-radius:0 6px 6px 0;padding:0 12px;">
+                <i class="fas fa-eye-slash" style="font-size:.9rem;"></i>
+              </button>
+            </div>
+            <div class="field-error-message" style="display:none;"></div>
+            <div class="password-strength mt-1">
+              <div class="progress"><div class="progress-bar" role="progressbar" style="width:0%;border-radius:2px;transition:width .3s ease;"></div></div>
+              <small class="d-block mt-1 password-hint" style="color:#7f8c8d;font-size:.75rem;">
+                Use 8 or more characters with a mix of letters, numbers & symbols
+              </small>
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label for="id_password2" class="form-label" style="color:#2c3e50;font-weight:500;font-size:.85rem;margin-bottom:4px;">Confirm Password</label>
+            <div class="input-group" style="height:42px;">
+              <input type="password" id="id_password2" name="password2" class="form-control"
+                     placeholder="••••••••"
+                     autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"
+                     required
+                     style="background:#f8f9fa;color:#2c3e50;border:1px solid #dfe6e9;border-radius:6px 0 0 6px;padding:10px 12px;font-size:.9rem;height:100%;">
+              <button class="btn btn-outline-secondary toggle-password" type="button"
+                      style="border:1px solid #dfe6e9;border-left:none;border-radius:0 6px 6px 0;padding:0 12px;">
+                <i class="fas fa-eye-slash" style="font-size:.9rem;"></i>
+              </button>
+            </div>
+            <div class="field-error-message" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="modal-footer d-block border-0">
+          <div class="form-width mx-auto" style="max-width:480px;"></div>
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-2 fw-bold"
+                    style="background:#3498db;border:none;border-radius:6px;font-size:.9rem;letter-spacing:.5px;box-shadow:0 2px 4px rgba(52,152,219,.2);height:42px;transition:all .3s ease;">
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              <span class="button-text">Register Now</span>
+            </button>
+          </div>
+          <div class="text-center">
+            <p style="color:#7f8c8d;font-size:.85rem;margin-bottom:0;">
+              Already have an account?
+              <a href="{% url 'login' %}" class="text-primary text-decoration-none fw-bold" style="color:#3498db !important;">Sign in</a>
+            </p>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('signupForm');
+  const firstNameInput = document.getElementById('id_first_name');
+  const lastNameInput = document.getElementById('id_last_name');
+  const emailInput = document.getElementById('id_email');
+  const usernameInput = document.getElementById('id_username');
+  const password1Input = document.getElementById('id_password1');
+  const password2Input = document.getElementById('id_password2');
+
+  [firstNameInput, lastNameInput, emailInput, usernameInput, password1Input, password2Input].forEach(el => {
+    el.setAttribute('readonly', 'readonly');
+    el.addEventListener('focus', () => el.removeAttribute('readonly'), {once: true});
+  });
+
+  window.addEventListener('pageshow', function() {
+    [firstNameInput, lastNameInput, emailInput, usernameInput, password1Input, password2Input].forEach(el => {
+      if(el && el.value) el.value = '';
+    });
+  });
+
+  function showGlobalAlert(message, type = 'danger') {
+    const alertContainer = document.getElementById('globalAlert');
+    const alertIcon = alertContainer.querySelector('.alert-icon');
+    const alertMessage = alertContainer.querySelector('.alert-message');
+    
+    alertContainer.className = `alert alert-${type} mb-3`;
+    alertContainer.style.cssText = 'border-radius:8px;padding:12px 16px;font-size:.85rem;border:none;animation:slideDown .3s ease;';
+    
+    const iconClass = type === 'success' ? 'fa-check-circle' : 
+                     type === 'warning' ? 'fa-exclamation-triangle' : 'fa-exclamation-circle';
+    alertIcon.className = `fas ${iconClass} me-2`;
+    alertMessage.innerHTML = message;
+    alertContainer.classList.remove('d-none');
+    
+    if(type === 'success') { 
+      setTimeout(() => { hideGlobalAlert(); }, 5000); 
+    }
+  }
+  
+  window.hideGlobalAlert = function() { 
+    document.getElementById('globalAlert').classList.add('d-none'); 
+  };
+
+  function getFieldWrapper(field) { 
+    return field.closest('.mb-2, .mb-3, .col-md-6') || field.parentElement || field; 
+  }
+  
+  function ensureErrorElement(wrapper) {
+    let el = wrapper.querySelector('.field-error-message');
+    if(!el) { 
+      el = document.createElement('div'); 
+      el.className = 'field-error-message'; 
+      el.style.cssText = 'color:#e74c3c;font-size:.75rem;margin-top:4px;display:none;'; 
+      wrapper.appendChild(el); 
+    }
+    return el;
+  }
+  
+  function showFieldError(fieldName, message) {
+    const field = form.querySelector(`[name="${fieldName}"]`); 
+    if(!field) return;
+    
+    const wrapper = getFieldWrapper(field); 
+    const errorElement = ensureErrorElement(wrapper);
+    errorElement.textContent = message; 
+    errorElement.style.display = 'block';
+    field.classList.add('field-error', 'shake-animation'); 
+    setTimeout(() => field.classList.remove('shake-animation'), 500);
+  }
+  
+  function clearFieldError(fieldName) {
+    const field = form.querySelector(`[name="${fieldName}"]`); 
+    if(!field) return;
+    
+    const wrapper = getFieldWrapper(field); 
+    const errorElement = wrapper.querySelector('.field-error-message');
+    if(errorElement) { 
+      errorElement.textContent = ''; 
+      errorElement.style.display = 'none'; 
+    }
+    field.classList.remove('field-error');
+  }
+  
+  function clearAllErrors() {
+    hideGlobalAlert();
+    ['first_name', 'last_name', 'email', 'username', 'password1', 'password2'].forEach(clearFieldError);
+  }
+
+  function updatePasswordStrength() {
+    const container = form.querySelector('.password-strength'); 
+    if(!container) return;
+    
+    const progressBar = container.querySelector('.progress-bar');
+    const hintText = container.querySelector('.password-hint');
+    const pwd = password1Input.value;
+    let strength = 0;
+    
+    const hasLength = pwd.length >= 8, 
+          hasUpper = /[A-Z]/.test(pwd), 
+          hasLower = /[a-z]/.test(pwd), 
+          hasNumber = /\d/.test(pwd), 
+          hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+    
+    if(hasLength) strength += 20; 
+    if(hasUpper) strength += 20; 
+    if(hasLower) strength += 20; 
+    if(hasNumber) strength += 20; 
+    if(hasSpecial) strength += 20;
+    
+    let cls = 'bg-danger'; 
+    if(strength >= 60) cls = 'bg-warning'; 
+    if(strength >= 80) cls = 'bg-success';
+    
+    if(progressBar) { 
+      progressBar.style.width = Math.min(strength, 100) + '%'; 
+      progressBar.className = 'progress-bar ' + cls; 
+    }
+    
+    if(hintText) {
+      if(pwd.length === 0) { 
+        hintText.textContent = "Use 8 or more characters with a mix of letters, numbers & symbols"; 
+        hintText.style.color = '#7f8c8d'; 
+      }
+      else if(pwd.length < 8) { 
+        hintText.textContent = "Password too short (min 8 characters)"; 
+        hintText.style.color = '#e74c3c'; 
+      }
+      else if(cls === 'bg-danger') { 
+        hintText.textContent = "Weak password – add uppercase letters, numbers, or symbols"; 
+        hintText.style.color = '#e74c3c'; 
+      }
+      else if(cls === 'bg-warning') { 
+        hintText.textContent = "Moderate password – could be stronger"; 
+        hintText.style.color = '#f39c12'; 
+      }
+      else { 
+        hintText.textContent = "Strong password!"; 
+        hintText.style.color = '#27ae60'; 
+      }
+    }
+  }
+  
+  function validatePasswordSimilarity() {
+    const username = (usernameInput.value || '').toLowerCase();
+    const password = (password1Input.value || '').toLowerCase();
+    const emailVal = (emailInput.value || '').toLowerCase();
+    const emailLocal = emailVal.includes('@') ? emailVal.split('@')[0] : '';
+    
+    if(username && password.includes(username)) { 
+      showFieldError('password1', 'Password should not contain your username.'); 
+      return false; 
+    }
+    
+    if(emailLocal && password.includes(emailLocal)) { 
+      showFieldError('password1', 'Password should not contain parts of your email.'); 
+      return false; 
+    }
+    
+    const commonPasswords = ['password', '12345678', 'qwerty', 'admin', 'letmein', 'welcome', 'password123'];
+    if(commonPasswords.includes(password)) { 
+      showFieldError('password1', 'Password is too common.'); 
+      return false; 
+    }
+    
+    if(/^\d+$/.test(password) && password.length > 0) { 
+      showFieldError('password1', 'Password cannot be entirely numeric.'); 
+      return false; 
+    }
+    
+    return true;
+  }
+  
+  function validatePasswordMatch() {
+    if(password1Input.value && password2Input.value && password1Input.value !== password2Input.value) {
+      showFieldError('password2', "Passwords don't match."); 
+      return false;
+    } else if(password1Input.value && password2Input.value) {
+      clearFieldError('password2'); 
+      password2Input.classList.add('field-success'); 
+      setTimeout(() => password2Input.classList.remove('field-success'), 2000);
+    }
+    return true;
+  }
+
+  [usernameInput, emailInput].forEach(el => {
+    el.addEventListener('input', () => { 
+      clearFieldError(el.name); 
+      if(el === usernameInput) validatePasswordSimilarity(); 
+    });
+  });
+  
+  password1Input.addEventListener('input', () => { 
+    clearFieldError('password1'); 
+    updatePasswordStrength(); 
+    validatePasswordSimilarity(); 
+    validatePasswordMatch(); 
+  });
+  
+  password2Input.addEventListener('input', () => { 
+    clearFieldError('password2'); 
+    validatePasswordMatch(); 
+  });
+  
+  firstNameInput.addEventListener('input', () => clearFieldError('first_name'));
+  lastNameInput.addEventListener('input', () => clearFieldError('last_name'));
+
+  form.addEventListener('invalid', function(e) { e.preventDefault(); }, true);
+
+  function validateForm() {
+    clearAllErrors(); 
+    let ok = true;
+    
+    const values = {
+      first_name: (firstNameInput.value || '').trim(),
+      last_name: (lastNameInput.value || '').trim(),
+      email: (emailInput.value || '').trim().toLowerCase(),
+      username: (usernameInput.value || '').trim(),
+      password1: (password1Input.value || ''),
+      password2: (password2Input.value || '')
+    };
+    
+    const nameRegex = /^[A-Za-z\s'\-\.]{2,150}$/;
+    const userRegex = /^[A-Za-z0-9]{4,20}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
+
+    if(!values.first_name) { 
+      showFieldError('first_name', 'First name is required.'); 
+      ok = false; 
+    }
+    else if(values.first_name.length < 2) { 
+      showFieldError('first_name', 'First name must be at least 2 characters.'); 
+      ok = false; 
+    }
+    else if(!nameRegex.test(values.first_name)) { 
+      showFieldError('first_name', 'Only letters, spaces, apostrophes, dots, and hyphens allowed.'); 
+      ok = false; 
+    }
+
+    if(!values.last_name) { 
+      showFieldError('last_name', 'Last name is required.'); 
+      ok = false; 
+    }
+    else if(values.last_name.length < 2) { 
+      showFieldError('last_name', 'Last name must be at least 2 characters.'); 
+      ok = false; 
+    }
+    else if(!nameRegex.test(values.last_name)) { 
+      showFieldError('last_name', 'Only letters, spaces, apostrophes, dots, and hyphens allowed.'); 
+      ok = false; 
+    }
+
+    if(!values.email) { 
+      showFieldError('email', 'Email is required.'); 
+      ok = false; 
+    }
+    else if(!emailRegex.test(values.email)) { 
+      showFieldError('email', 'Enter a valid email address.'); 
+      ok = false; 
+    }
+
+    if(!values.username) { 
+      showFieldError('username', 'Username is required.'); 
+      ok = false; 
+    }
+    else if(values.username.length < 4) { 
+      showFieldError('username', 'Username must be at least 4 characters.'); 
+      ok = false; 
+    }
+    else if(!userRegex.test(values.username)) { 
+      showFieldError('username', 'Use 4-20 letters and numbers only.'); 
+      ok = false; 
+    }
+
+    if(!values.password1) { 
+      showFieldError('password1', 'Password is required.'); 
+      ok = false; 
+    }
+    else if(values.password1.length < 8) { 
+      showFieldError('password1', 'Password must be at least 8 characters.'); 
+      ok = false; 
+    }
+    else if(/^\d+$/.test(values.password1)) { 
+      showFieldError('password1', 'Password cannot be entirely numeric.'); 
+      ok = false; 
+    }
+    else if(values.username && values.password1.toLowerCase().includes(values.username.toLowerCase())) { 
+      showFieldError('password1', 'Password should not contain your username.'); 
+      ok = false; 
+    }
+    else {
+      const weakList = ['password', '12345678', 'qwerty', 'admin', 'letmein', 'welcome', 'password123'];
+      if(weakList.includes(values.password1.toLowerCase())) { 
+        showFieldError('password1', 'Password is too common.'); 
+        ok = false; 
+      }
+    }
+
+    if(!values.password2) { 
+      showFieldError('password2', 'Password confirmation is required.'); 
+      ok = false; 
+    }
+    else if(values.password1 && values.password1 !== values.password2) { 
+      showFieldError('password2', "Passwords don't match."); 
+      ok = false; 
+    }
+
+    if(!ok) showGlobalAlert('Please review the highlighted fields.', 'danger');
+    return ok;
+  }
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if(!validateForm()) return;
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    const buttonText = submitBtn.querySelector('.button-text');
+    
+    submitBtn.disabled = true; 
+    spinner.classList.remove('d-none'); 
+    buttonText.textContent = 'Memproses...';
+
+    try {
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if(response.ok && data.success) {
+            showGlobalAlert(data.message || 'Akun berhasil dibuat! Mengarahkan ke login...', 'success');
+            buttonText.textContent = 'Berhasil!';
+            submitBtn.classList.add('success-feedback');
+            spinner.classList.add('d-none');
+            
+            setTimeout(() => {
+                window.location.href = data.redirect || "{% url 'login' %}";
+            }, 1500);
+            
+        } else {
+            showGlobalAlert(data.message || 'Terjadi kesalahan. Silakan coba lagi.', 'danger');
+            submitBtn.disabled = false;
+            spinner.classList.add('d-none');
+            buttonText.textContent = 'Register Now';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showGlobalAlert('Koneksi error. Coba lagi nanti.', 'danger');
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+        buttonText.textContent = 'Register Now';
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    const t = e.target.closest('.toggle-password'); 
+    if(!t) return;
+    
+    const input = t.closest('.input-group').querySelector('input');
+    const icon = t.querySelector('i');
+    
+    if(input.type === 'password') {
+      input.type = 'text'; 
+      icon.classList.replace('fa-eye-slash', 'fa-eye');
+    } else { 
+      input.type = 'password'; 
+      icon.classList.replace('fa-eye', 'fa-eye-slash'); 
+    }
+  });
+
+  document.addEventListener('input', (e) => {
+    if(e.target && e.target.id === 'id_password1') updatePasswordStrength();
+    
+    const t = e.target;
+    if(t && t.name && ['first_name','last_name','email','username','password1','password2'].includes(t.name)) {
+      clearFieldError(t.name);
+    }
+  });
+
+  updatePasswordStrength();
+});
+</script>

@@ -1,0 +1,62 @@
+<div id="view-table">
+    {% include 'playlist/components/table.html' with playlists=playlists %}
+</div>
+
+<div id="view-list" style="display: none;">
+    {% include 'playlist/components/list.html' with playlists=playlists %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnTable = document.getElementById('btn-table');
+    const btnList = document.getElementById('btn-list');
+    
+    function updateViewState(viewType) {
+        const viewStateInput = document.getElementById('view-state');
+        if (viewStateInput) {
+            viewStateInput.value = viewType;
+        }
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentView = urlParams.get('view') || 'table';
+    
+    if (currentView === 'list') {
+        document.getElementById('view-table').style.display = 'none';
+        document.getElementById('view-list').style.display = 'block';
+        if (btnTable && btnList) {
+            btnTable.classList.remove('active');
+            btnList.classList.add('active');
+        }
+        updateViewState('list');
+    } else {
+        document.getElementById('view-table').style.display = 'block';
+        document.getElementById('view-list').style.display = 'none';
+        if (btnTable && btnList) {
+            btnTable.classList.add('active');
+            btnList.classList.remove('active');
+        }
+        updateViewState('table');
+    }
+    
+    if (btnTable && btnList) {
+        btnTable.addEventListener('click', function() {
+            document.getElementById('view-table').style.display = 'block';
+            document.getElementById('view-list').style.display = 'none';
+            this.classList.add('active');
+            btnList.classList.remove('active');
+            
+            updateViewState('table');
+        });
+
+        btnList.addEventListener('click', function() {
+            document.getElementById('view-table').style.display = 'none';
+            document.getElementById('view-list').style.display = 'block';
+            this.classList.add('active');
+            btnTable.classList.remove('active');
+            
+            updateViewState('list');
+        });
+    }
+});
+</script>

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Recycle Bin - Digital Signage{% endblock %}
+
+{% block content %}
+    {% if messages %}
+    <div class="notification-container">
+        {% for message in messages %}
+        <div class="notification {% if message.tags == 'success' %}notification-success{% else %}notification-error{% endif %}">
+            <span class="notification-icon">
+                {% if message.tags == 'success' %}✓{% else %}⚠️{% endif %}
+            </span>
+            <div class="notification-content">
+                <h4>{% if message.tags == 'success' %}Success{% else %}Warning{% endif %}</h4>
+                <p>{{ message }}</p>
+            </div>
+            <button class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% include 'playlist/components/toggle.html' %}
+    
+    <style>
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 350px;
+        }
+        
+        .notification {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .notification-success {
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .notification-error {
+            border-left: 4px solid #FF9800;
+        }
+        
+        .notification-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        
+        .notification-success .notification-icon {
+            color: #4CAF50;
+        }
+        
+        .notification-error .notification-icon {
+            color: #F44336;
+        }
+        
+        .notification-content h4 {
+            margin: 0 0 4px 0;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .notification-content p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            margin-left: 12px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .notification-close:hover {
+            color: #333;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifications = document.querySelectorAll('.notification');
+            
+            notifications.forEach(notification => {
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => {
+                        notification.style.display = 'none';
+                    }, 300);
+                }, 5000);
+            });
+        });
+    </script>
+{% endblock %}

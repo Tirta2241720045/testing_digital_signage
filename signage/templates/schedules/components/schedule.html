@@ -1,0 +1,1480 @@
+{% load static %}
+
+<div class="schedule-main-container">
+    <div class="left-section">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h2 class="card-title">
+                    <img src="/media/assets/schedule.png" class="schedule-icon">
+                    <span>Create New Schedule</span>
+                </h2>
+            </div>
+            <div class="card-body">
+                <form id="scheduleForm" method="post" action="{% url 'manage_schedules' %}">
+                    {% csrf_token %}
+                    <div class="form-group-compact">
+                        <label for="scheduleName">Schedule Name</label>
+                        <input type="text" id="scheduleName" name="schedule_name" class="form-control" placeholder="Enter schedule name" required>
+                        <div class="error-message" id="scheduleNameError" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Schedule name is required
+                        </div>
+                    </div>
+                    <div class="form-group-compact">
+                        <label for="deviceGroup">Device Group</label>
+                        <div class="custom-dropdown">
+                            <select id="deviceGroup" name="device_group" class="form-control custom-select" required>
+                                <option value="">Select device group</option>
+                                {% for group in device_groups %}
+                                    <option value="{{ group.id }}">{{ group.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="dropdown-icon">
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                    <path d="M3 4.5L6 7.5L9 4.5" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="error-message" id="deviceGroupError" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Please select a device group
+                        </div>
+                    </div>
+                    <input type="hidden" id="contentId" name="content">
+                    <input type="hidden" id="playlistId" name="playlist">
+                    <input type="hidden" id="playbackDate" name="playback_date">
+                    <input type="hidden" id="playbackStart" name="playback_start">
+                    <input type="hidden" id="playbackEnd" name="playback_end">
+                    <input type="hidden" id="scheduleType" name="schedule_type" value="None">
+                    <input type="hidden" id="repeat" name="repeat" value="False">
+                    <input type="hidden" id="neverExpire" name="never_expire" value="False">
+                    <input type="hidden" name="publish_status" value="Published">
+                </form>
+
+                <div class="content-section">
+                    <div class="content-controls">
+                        <div class="btn-group btn-group-sm">
+                            <button id="showContentBtn" class="btn btn-sm btn-primary d-flex align-items-center">
+                                <img src="/media/assets/image.png" alt="Content" class="btn-icon">
+                                <span>Contents</span>
+                            </button>
+                            <button id="showPlaylistBtn" class="btn btn-sm btn-outline-primary d-flex align-items-center">
+                                <img src="/media/assets/playlist.png" alt="Playlist" class="btn-icon">
+                                <span>Playlists</span>
+                            </button>
+                        </div>
+                        <div class="search-container">
+                            <input type="text" id="contentSearchInput" placeholder="Search..." class="search-input">
+                            <i class="search-icon fas fa-search"></i>
+                        </div>
+                    </div>
+
+                    <div id="contentsList" class="content-display-section">
+                        <div id="contentsContainer" class="content-grid">
+                            {% for content in contents %}
+                                <div class="draggable-card" data-id="{{ content.id }}" data-type="content" data-name="{{ content.content_name }}" draggable="true">
+                                    <div class="media-container">
+                                        {% if content.file_type_content == 'Image' %}
+                                            <img src="{{ content.file.url }}" class="img-fluid">
+                                        {% else %}
+                                            <video class="img-fluid" muted>
+                                                <source src="{{ content.file.url }}">
+                                            </video>
+                                        {% endif %}
+                                    </div>
+                                    <div class="content-name">{{ content.content_name }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div id="playlistsList" class="content-display-section" style="display:none;">
+                        <div id="playlistsContainer" class="content-grid">
+                            {% for playlist in playlists %}
+                                <div class="draggable-card" data-id="{{ playlist.id }}" data-type="playlist" data-name="{{ playlist.playlist_name }}" draggable="true">
+                                    <div class="media-container">
+                                        {% if playlist.file_type_playlist == 'Image' %}
+                                            <img src="{{ playlist.file.url }}" class="img-fluid">
+                                        {% else %}
+                                            <video class="img-fluid" muted>
+                                                <source src="{{ playlist.file.url }}">
+                                            </video>
+                                        {% endif %}
+                                    </div>
+                                    <div class="content-name">{{ playlist.playlist_name }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-compact">
+                    <label for="scheduleDescription">Description</label>
+                    <textarea id="scheduleDescription" name="description" class="form-control" placeholder="Enter schedule description" rows="3"></textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-modern btn-modern-cancel" onclick="cancelSchedule()" type="button">
+                        <span>Cancel</span>
+                    </button>
+                    <button class="btn-modern btn-modern-primary" onclick="submitScheduleForm()" type="button">
+                        <span>Save Schedule</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-section">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 border-bottom">
+                <div class="preview-title">
+                    <img src="/media/assets/eye.png" class="schedule-icon">
+                    <span>Preview Schedule</span>
+                </div>
+            </div>
+            <div class="card-body calendar-container">
+                <div class="preview-controls">
+                    <div class="schedule-navigation">
+                        <button class="nav-btn" onclick="navigateSchedule(-1)">‹</button>
+                        <div class="month-display" id="dateRange">August 2025</div>
+                        <button class="nav-btn" onclick="navigateSchedule(1)">›</button>
+                    </div>
+                    <button class="clear-btn" onclick="clearSchedule()">Clear All</button>
+                </div>
+                <div class="monthly-calendar" id="monthlyCalendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="dateWarningModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Past Date Warning</h3>
+            <span class="close-x" onclick="closeDateWarningModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="warning-message">
+                <p>You are trying to schedule content for a past date. Are you sure you want to proceed with this date?</p>
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeDateWarningModal()" class="btn btn-secondary">No, Cancel</button>
+                <button onclick="proceedWithPastDate()" class="btn btn-primary">Yes, Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="timeModal" class="modal">
+    <div class="modal-content time-modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Schedule Content</h3>
+            <span class="close-x" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="time-inputs-section">
+                <div class="time-input-group">
+                    <label>Start Time</label>
+                    <div class="row g-2">
+                        <div class="col">
+                            <input type="time" class="form-control" id="startTimeInput" value="08:00">
+                        </div>
+                    </div>
+                </div>
+                <div class="time-separator-center">to</div>
+                <div class="time-input-group">
+                    <label>End Time</label>
+                    <div class="row g-2">
+                        <div class="col">
+                            <input type="time" class="form-control" id="endTimeInput" value="09:00">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="repeatOptions">Repeat</label>
+                <div class="custom-dropdown">
+                    <select id="repeatOptions" class="form-control custom-select">
+                        <option value="none">Does not repeat</option>
+                        <option value="daily">Daily (for 1 week)</option>
+                        <option value="weekly">Weekly (for 1 month)</option>
+                        <option value="monthly">Monthly (for 1 year)</option>
+                        <option value="never-expire">Never Expire (for 1 year)</option>
+                    </select>
+                    <div class="dropdown-icon">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button onclick="confirmSchedule()" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-color: #6366F1;
+    --secondary-color: #FFFFFF;
+    --border-color: #E2E8F0;
+    --header-gradient-start: #f7f7f7;
+    --header-gradient-end: #dcdcdc;
+    --primary-color: #4361ee;
+    --text-color: #212529;
+    --light-text: #64748B;
+    --today-color: #EEF2FF;
+    --scheduled-item-bg: #F1F5F9;
+    --scheduled-item-border: #CBD5E1;
+    --warning-color: #F59E0B;
+    --success-color: #10B981;
+    --error-color: #EF4444;
+    --hover-bg: #F1F5F9;
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--secondary-color);
+}
+
+.schedule-main-container {
+    display: flex;
+    height: calc(100vh - 40px);
+    background: var(--secondary-color);
+    gap: 20px;
+    padding: 20px;
+    align-items: stretch;
+}
+
+.left-section, .right-section {
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+}
+
+.left-section {
+    width: 30%;
+}
+
+.right-section {
+    width: 70%;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-body {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.form-group-compact {
+    margin-bottom: 16px;
+}
+
+.form-group-compact label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-control.error {
+    border-color: var(--error-color);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+textarea.form-control {
+    resize: none;
+    font-family: inherit;
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+.error-message i {
+    font-size: 12px;
+}
+
+.content-section {
+    margin: 20px 0;
+}
+
+.content-controls {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 2px;
+    background: var(--secondary-color);
+    border-radius: 6px;
+    padding: 2px;
+}
+
+.btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    border: none;
+}
+
+.btn-icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    transition: filter 0.2s ease;
+}
+
+.btn-primary .btn-icon {
+    filter: brightness(0) invert(1);
+}
+
+.btn-outline-primary .btn-icon {
+    filter: none;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-primary {
+    background-color: transparent;
+    color: var(--light-text);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.content-display-section {
+    height: 190px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+}
+
+.draggable-card {
+    border: 1px solid var(--border-color);
+    padding: 6px;
+    cursor: grab;
+    text-align: center;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.draggable-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-color: var(--primary-color);
+}
+
+.draggable-card img, .draggable-card video {
+    max-width: 100%;
+    max-height: 50px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.content-name {
+    font-weight: 500;
+    font-size: 10px;
+    margin: 4px 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    gap: 12px;
+}
+
+.btn-modern {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    text-transform: none;
+}
+
+.btn-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-modern:hover::before {
+    left: 100%;
+}
+
+.btn-modern-cancel {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #6c757d;
+    border: 2px solid #dee2e6;
+}
+
+.btn-modern-cancel:hover {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    border-color: #495057;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+}
+
+.btn-modern-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #5856eb 100%);
+    color: white;
+    border: 2px solid var(--primary-color);
+}
+
+.btn-modern-primary:hover {
+    background: linear-gradient(135deg, #5856eb 0%, #4c51bf 100%);
+    border-color: #5856eb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+.btn-modern i {
+    font-size: 16px;
+}
+
+.schedule-navigation {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-btn, .clear-btn {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-color);
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.nav-btn:hover, .clear-btn:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.monthly-calendar {
+    width: 100%;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 10px;
+    color: var(--light-text);
+    padding: 0 4px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.calendar-day {
+    min-height: 80px;
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    border-radius: 6px;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+.calendar-day:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.1);
+}
+
+.day-number {
+    font-weight: 600;
+    margin-bottom: 6px;
+    text-align: right;
+    font-size: 12px;
+}
+
+.scheduled-item {
+    background: var(--scheduled-item-bg);
+    border-left: 2px solid var(--primary-color);
+    padding: 4px;
+    margin: 2px 0;
+    font-size: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.scheduled-item:hover {
+    background: var(--today-color);
+    transform: translateX(2px);
+}
+
+.scheduled-item img, .scheduled-item video {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+.scheduled-item .time-range {
+    font-size: 9px;
+    color: var(--light-text);
+    margin-left: auto;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.empty-day {
+    background: var(--secondary-color);
+    color: #ccc;
+    border: 1px dashed var(--border-color);
+}
+
+.today {
+    background-color: var(--today-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+}
+
+.today .day-number {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.custom-dropdown {
+    position: relative;
+}
+
+.custom-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 30px 8px 12px;
+    font-size: 13px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.custom-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.dropdown-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+
+.custom-select:focus + .dropdown-icon {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-input {
+    padding-left: 30px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    height: 32px;
+    width: 100%;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--light-text);
+    font-size: 12px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 3% auto;
+    border-radius: 12px;
+    width: 420px;
+    max-width: 90%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: modalSlideIn 0.3s ease;
+    overflow: hidden;
+}
+
+.time-modal {
+    width: 480px;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #f7f7f7 0%, #dcdcdc 100%);
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.close-x {
+    color: var(--text-color);
+    font-size: 28px; 
+    cursor: pointer;
+    display: inline-block; 
+    padding: 5px; 
+}
+
+.close-x:hover {
+    color: var(--error-color); 
+}
+   
+.modal-body {
+    padding: 24px;
+}
+
+.warning-message {
+    margin: 20px 0;
+    padding: 16px;
+    background-color: #FEF3C7;
+    border-left: 4px solid var(--warning-color);
+    border-radius: 8px;
+}
+
+.warning-message p {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.time-inputs-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: var(--secondary-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.time-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.time-input-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--light-text);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.time-separator-center {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--light-text);
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-secondary {
+    background-color: #fff;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--primary-color);
+}
+
+.schedule-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.card-title span {
+    font-size: 18px; 
+    line-height: 1; 
+}
+
+.preview-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.preview-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.calendar-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0 20px 20px 20px;
+}
+
+.preview-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    margin-bottom: 8px;
+}
+
+.schedule-navigation {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+    border-color: var(--primary-color);
+    background-color: var(--hover-bg);
+}
+
+.month-display {
+    font-size: 16px;
+    font-weight: 500;
+    min-width: 120px;
+    text-align: center;
+}
+
+.clear-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+    border-color: var(--primary-color);
+    background-color: var(--hover-bg);
+}
+
+.monthly-calendar {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 8px;
+}
+
+.schedule-main-container {
+    background: #FFFFFF;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 40px);
+}
+
+.card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(67, 97, 238, 0.15) !important;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f7f7f7 0%, #dcdcdc 100%) !important;
+    border-bottom: 1px solid rgba(222, 226, 230, 0.5) !important;
+    padding: 15px 20px;
+}
+
+.schedule-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+</style>
+
+<script>
+let scheduleData = {
+    currentDate: new Date(),
+    scheduledItems: {},
+    activeDropDate: null,
+    draggedItem: null
+};
+
+function formatLocalDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function isPastDate(date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    return checkDate < today;
+}
+
+function validateRequiredFields() {
+    const scheduleName = document.getElementById('scheduleName').value.trim();
+    const deviceGroup = document.getElementById('deviceGroup').value;
+    
+    let isValid = true;
+    
+    document.getElementById('scheduleNameError').style.display = 'none';
+    document.getElementById('deviceGroupError').style.display = 'none';
+    document.getElementById('scheduleName').classList.remove('error');
+    document.getElementById('deviceGroup').classList.remove('error');
+    
+    if (!scheduleName) {
+        document.getElementById('scheduleNameError').style.display = 'block';
+        document.getElementById('scheduleName').classList.add('error');
+        isValid = false;
+    }
+    
+    if (!deviceGroup) {
+        document.getElementById('deviceGroupError').style.display = 'block';
+        document.getElementById('deviceGroup').classList.add('error');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+function updateButtonIconColors() {
+    const contentBtn = document.getElementById('showContentBtn');
+    const playlistBtn = document.getElementById('showPlaylistBtn');
+    
+    const contentIcon = contentBtn.querySelector('.btn-icon');
+    const playlistIcon = playlistBtn.querySelector('.btn-icon');
+    
+    contentIcon.style.filter = '';
+    playlistIcon.style.filter = '';
+    
+    if (contentBtn.classList.contains('btn-primary')) {
+        contentIcon.style.filter = 'brightness(0) invert(1)';
+    }
+    
+    if (playlistBtn.classList.contains('btn-primary')) {
+        playlistIcon.style.filter = 'brightness(0) invert(1)';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initSchedule();
+    setupContentToggle();
+    setupDragAndDrop();
+    setupFormValidation();
+    updateButtonIconColors();
+});
+
+function setupFormValidation() {
+    const scheduleNameInput = document.getElementById('scheduleName');
+    const deviceGroupSelect = document.getElementById('deviceGroup');
+    
+    scheduleNameInput.addEventListener('input', function() {
+        if (this.value.trim()) {
+            document.getElementById('scheduleNameError').style.display = 'none';
+            this.classList.remove('error');
+        }
+    });
+    
+    deviceGroupSelect.addEventListener('change', function() {
+        if (this.value) {
+            document.getElementById('deviceGroupError').style.display = 'none';
+            this.classList.remove('error');
+        }
+    });
+}
+
+function setupContentToggle() {
+    const showContentBtn = document.getElementById('showContentBtn');
+    const showPlaylistBtn = document.getElementById('showPlaylistBtn');
+    
+    showContentBtn.addEventListener('click', function() {
+        document.getElementById('contentsList').style.display = 'block';
+        document.getElementById('playlistsList').style.display = 'none';
+        showContentBtn.className = 'btn btn-sm btn-primary d-flex align-items-center';
+        showPlaylistBtn.className = 'btn btn-sm btn-outline-primary d-flex align-items-center';
+        updateButtonIconColors();
+    });
+    
+    showPlaylistBtn.addEventListener('click', function() {
+        document.getElementById('contentsList').style.display = 'none';
+        document.getElementById('playlistsList').style.display = 'block';
+        showPlaylistBtn.className = 'btn btn-sm btn-primary d-flex align-items-center';
+        showContentBtn.className = 'btn btn-sm btn-outline-primary d-flex align-items-center';
+        updateButtonIconColors();
+    });
+    
+    document.getElementById('contentSearchInput').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const activeContainer = document.querySelector('#contentsList:not([style*="none"]), #playlistsList:not([style*="none"])');
+        const items = activeContainer.querySelectorAll('.draggable-card');
+        
+        items.forEach(item => {
+            const name = item.getAttribute('data-name').toLowerCase();
+            item.style.display = name.includes(searchTerm) ? '' : 'none';
+        });
+    });
+}
+
+function setupDragAndDrop() {
+    document.querySelectorAll('.draggable-card').forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            const data = {
+                id: this.getAttribute('data-id'),
+                type: this.getAttribute('data-type'),
+                name: this.getAttribute('data-name'),
+                fileUrl: this.querySelector('img') ? this.querySelector('img').src : 
+                         this.querySelector('video source').src,
+                fileType: this.querySelector('img') ? 'Image' : 'Video'
+            };
+            scheduleData.draggedItem = data;
+            this.classList.add('dragging');
+        });
+        
+        item.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+        });
+    });
+    
+    document.addEventListener('dragover', function(e) {
+        if (e.target.classList.contains('calendar-day') && !e.target.classList.contains('empty-day')) {
+            e.preventDefault();
+            e.target.style.backgroundColor = '#f0f8ff';
+        }
+    });
+    
+    document.addEventListener('dragleave', function(e) {
+        if (e.target.classList.contains('calendar-day') && !e.target.classList.contains('empty-day')) {
+            e.target.style.backgroundColor = '';
+        }
+    });
+    
+    document.addEventListener('drop', function(e) {
+        if (e.target.classList.contains('calendar-day') && !e.target.classList.contains('empty-day')) {
+            e.preventDefault();
+            e.target.style.backgroundColor = '';
+            
+            if (!validateRequiredFields()) {
+                return;
+            }
+            
+            const dateStr = e.target.getAttribute('data-date');
+            scheduleData.activeDropDate = new Date(dateStr);
+            
+            if (isPastDate(scheduleData.activeDropDate)) {
+                document.getElementById('dateWarningModal').style.display = 'block';
+            } else {
+                showTimeModal();
+            }
+        }
+    });
+}
+
+function showTimeModal() {
+    document.getElementById('startTimeInput').value = '08:00';
+    document.getElementById('endTimeInput').value = '09:00';
+    document.getElementById('repeatOptions').value = 'none';
+    
+    document.getElementById('timeModal').style.display = 'block';
+}
+
+function closeDateWarningModal() {
+    document.getElementById('dateWarningModal').style.display = 'none';
+}
+
+function proceedWithPastDate() {
+    closeDateWarningModal();
+    showTimeModal();
+}
+
+function initSchedule() {
+    renderMonthlyCalendar();
+}
+
+function renderMonthlyCalendar() {
+    const year = scheduleData.currentDate.getFullYear();
+    const month = scheduleData.currentDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    
+    let html = '<div class="calendar-header">';
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayNames.forEach(day => {
+        html += `<div>${day}</div>`;
+    });
+    html += '</div><div class="calendar-grid">';
+    
+    for (let i = 0; i < startingDay; i++) {
+        html += '<div class="calendar-day empty-day"></div>';
+    }
+    
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const isToday = date.getDate() === today.getDate() && 
+                       date.getMonth() === today.getMonth() && 
+                       date.getFullYear() === today.getFullYear();
+        
+        html += `<div class="calendar-day ${isToday ? 'today' : ''}" data-date="${date.toISOString()}">`;
+        html += `<div class="day-number">${day}</div>`;
+        
+        const dateKey = formatDateKey(date);
+        if (scheduleData.scheduledItems[dateKey]) {
+            scheduleData.scheduledItems[dateKey].forEach(item => {
+                html += `
+                    <div class="scheduled-item">
+                        ${item.fileType === 'Image' ? 
+                            `<img src="${item.fileUrl}" alt="${item.name}">` : 
+                            `<video src="${item.fileUrl}"></video>`}
+                        <span class="time-range">${item.startTime}-${item.endTime}</span>
+                    </div>
+                `;
+            });
+        }
+        
+        html += '</div>';
+    }
+    
+    const totalCells = startingDay + daysInMonth;
+    const remainingCells = 7 - (totalCells % 7);
+    if (remainingCells < 7) {
+        for (let i = 0; i < remainingCells; i++) {
+            html += '<div class="calendar-day empty-day"></div>';
+        }
+    }
+    
+    html += '</div>';
+    document.getElementById('monthlyCalendar').innerHTML = html;
+    updateDateRange();
+}
+
+function formatDateKey(date) {
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+}
+
+function updateDateRange() {
+    const options = { year: 'numeric', month: 'long' };
+    document.getElementById('dateRange').textContent = 
+        scheduleData.currentDate.toLocaleDateString('en-US', options);
+}
+
+function navigateSchedule(direction) {
+    scheduleData.currentDate.setMonth(scheduleData.currentDate.getMonth() + direction);
+    renderMonthlyCalendar();
+}
+
+function clearSchedule() {
+    scheduleData.scheduledItems = {};
+    
+    document.getElementById('scheduleDescription').value = '';
+    
+    renderMonthlyCalendar();
+}
+
+function cancelSchedule() {
+    window.location.href = '/schedules/';
+}
+
+function closeModal() {
+    document.getElementById('timeModal').style.display = 'none';
+}
+
+function confirmSchedule() {
+    const startTime = document.getElementById('startTimeInput').value;
+    const endTime = document.getElementById('endTimeInput').value;
+    const repeatOption = document.getElementById('repeatOptions').value;
+    
+    if (scheduleData.draggedItem && scheduleData.activeDropDate) {
+        if (scheduleData.draggedItem.type === 'content') {
+            document.getElementById('contentId').value = scheduleData.draggedItem.id;
+            document.getElementById('playlistId').value = '';
+        } else {
+            document.getElementById('playlistId').value = scheduleData.draggedItem.id;
+            document.getElementById('contentId').value = '';
+        }
+        
+        document.getElementById('playbackDate').value = formatLocalDate(scheduleData.activeDropDate);
+        document.getElementById('playbackStart').value = startTime;
+        document.getElementById('playbackEnd').value = endTime;
+        
+        let scheduleType = 'None';
+        let repeat = false;
+        let neverExpire = false;
+        
+        switch(repeatOption) {
+            case 'daily':
+                scheduleType = 'Daily';
+                repeat = true;
+                break;
+            case 'weekly':
+                scheduleType = 'Weekly';
+                repeat = true;
+                break;
+            case 'monthly':
+                scheduleType = 'Monthly';
+                repeat = true;
+                break;
+            case 'never-expire':
+                scheduleType = 'List';
+                repeat = true;
+                neverExpire = true;
+                break;
+            default:
+                scheduleType = 'None';
+                repeat = false;
+                neverExpire = false;
+        }
+        
+        document.getElementById('scheduleType').value = scheduleType;
+        document.getElementById('repeat').value = repeat;
+        document.getElementById('neverExpire').value = neverExpire;
+        
+        const deviceGroupSelect = document.getElementById('deviceGroup');
+        const deviceGroupName = deviceGroupSelect.options[deviceGroupSelect.selectedIndex].text;
+        const mediaName = scheduleData.draggedItem.name;
+        const mediaType = scheduleData.draggedItem.type === 'content' ? 'Content' : 'Playlist';
+        
+        let dateRange = scheduleData.activeDropDate.toLocaleDateString();
+        if (repeatOption !== 'none') {
+            const endDate = new Date(scheduleData.activeDropDate);
+            if (repeatOption === 'daily') {
+                endDate.setDate(endDate.getDate() + 6); 
+                while (endDate.getMonth() === scheduleData.activeDropDate.getMonth()) {
+                    endDate.setDate(endDate.getDate() + 7);
+                }
+                endDate.setDate(endDate.getDate() - 7); 
+            } else if (repeatOption === 'monthly') {
+                endDate.setMonth(endDate.getMonth() + 11);
+            } else if (repeatOption === 'never-expire') {
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                endDate.setDate(endDate.getDate() - 1); 
+            }
+            dateRange += ' - ' + endDate.toLocaleDateString();
+        }
+        
+        document.getElementById('scheduleDescription').value = 
+            `Device Group: ${deviceGroupName}\n` +
+            `Playback Date: ${dateRange}\n` +
+            `${mediaType}: ${mediaName}`;
+        
+        addToVisualCalendar(scheduleData.activeDropDate, repeatOption, startTime, endTime);
+        
+        closeModal();
+    }
+}
+
+function addToVisualCalendar(baseDate, repeatOption, startTime, endTime) {
+    const scheduledItem = {
+        ...scheduleData.draggedItem,
+        startTime: startTime,
+        endTime: endTime,
+        date: baseDate.toISOString()
+    };
+    
+    scheduleData.scheduledItems = {};
+    
+    const baseDateKey = formatDateKey(baseDate);
+    scheduleData.scheduledItems[baseDateKey] = [scheduledItem];
+    
+    if (repeatOption !== 'none') {
+        switch(repeatOption) {
+            case 'daily':
+                for (let i = 1; i < 7; i++) {
+                    const newDate = new Date(baseDate);
+                    newDate.setDate(newDate.getDate() + i);
+                    const newDateKey = formatDateKey(newDate);
+                    scheduleData.scheduledItems[newDateKey] = [{
+                        ...scheduledItem,
+                        date: newDate.toISOString()
+                    }];
+                }
+                break;
+                
+            case 'weekly':
+                let weeklyDate = new Date(baseDate);
+                while (true) {
+                    weeklyDate.setDate(weeklyDate.getDate() + 7);
+                    if (weeklyDate.getMonth() !== baseDate.getMonth()) {
+                        break;
+                    }
+                    const weeklyDateKey = formatDateKey(weeklyDate);
+                    scheduleData.scheduledItems[weeklyDateKey] = [{
+                        ...scheduledItem,
+                        date: weeklyDate.toISOString()
+                    }];
+                }
+                break;
+                
+            case 'monthly':
+                for (let i = 1; i < 12; i++) {
+                    const newDate = new Date(baseDate);
+                    newDate.setMonth(newDate.getMonth() + i);
+                    const newDateKey = formatDateKey(newDate);
+                    scheduleData.scheduledItems[newDateKey] = [{
+                        ...scheduledItem,
+                        date: newDate.toISOString()
+                    }];
+                }
+                break;
+                
+            case 'never-expire':
+                for (let i = 1; i < 365; i++) {
+                    const newDate = new Date(baseDate);
+                    newDate.setDate(newDate.getDate() + i);
+                    const newDateKey = formatDateKey(newDate);
+                    if (!scheduleData.scheduledItems[newDateKey]) {
+                        scheduleData.scheduledItems[newDateKey] = [];
+                    }
+                    scheduleData.scheduledItems[newDateKey].push({
+                        ...scheduledItem,
+                        date: newDate.toISOString()
+                    });
+                }
+                break;
+        }
+    }
+    
+    renderMonthlyCalendar();
+}
+
+function submitScheduleForm() {
+    const form = document.getElementById('scheduleForm');
+    const contentId = document.getElementById('contentId').value;
+    const playlistId = document.getElementById('playlistId').value;
+    
+    if (!validateRequiredFields()) {
+        return;
+    }
+    
+    if (!contentId && !playlistId) {
+        alert('Please drag and drop a content or playlist to schedule');
+        return;
+    }
+    
+    form.addEventListener('submit', function() {
+        setTimeout(function() {
+            window.location.href = '/schedules/';
+        }, 100);
+    });
+    
+    form.submit();
+}
+
+window.onclick = function(event) {
+    const timeModal = document.getElementById('timeModal');
+    const dateWarningModal = document.getElementById('dateWarningModal');
+    
+    if (event.target === timeModal) {
+        closeModal();
+    }
+    
+    if (event.target === dateWarningModal) {
+        closeDateWarningModal();
+    }
+}
+</script>

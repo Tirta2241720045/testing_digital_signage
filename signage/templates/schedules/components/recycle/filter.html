@@ -1,0 +1,295 @@
+<div class="filter-container">
+    <button class="filter-button" id="schedule-filter-button" title="Filter Schedule">
+        <img src="/media/assets/filter.png" class="filter-icon" alt="Filter">
+    </button>
+    
+    <div class="filter-dropdown" id="schedule-filter-dropdown">
+        <div class="filter-section">
+            <h6 class="filter-title">Schedule Type</h6>
+            <div class="filter-grid">
+                <label class="filter-option">
+                    <input type="checkbox" name="schedule_type" value="Today" class="filter-checkbox">
+                    <span class="filter-label">Today</span>
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" name="schedule_type" value="Daily" class="filter-checkbox">
+                    <span class="filter-label">Daily</span>
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" name="schedule_type" value="Weekly" class="filter-checkbox">
+                    <span class="filter-label">Weekly</span>
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" name="schedule_type" value="Monthly" class="filter-checkbox">
+                    <span class="filter-label">Monthly</span>
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" name="schedule_type" value="Never Expire" class="filter-checkbox">
+                    <span class="filter-label">Never Expire</span>
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" name="schedule_type" value="Expired" class="filter-checkbox">
+                    <span class="filter-label">Expired</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="filter-section">
+            <h6 class="filter-title">Device Groups</h6>
+            <div class="filter-options scroll-container">
+                {% for group in device_groups_with_schedules %}
+                <label class="filter-option">
+                    <input type="checkbox" name="device_group" value="{{ group.id }}" class="filter-checkbox"
+                           {% if group.id|stringformat:"s" in active_filters.groups %}checked{% endif %}>
+                    <span class="filter-label">{{ group.name }}</span>
+                    <span class="badge">{{ group.actual_schedule_count }}</span>
+                </label>
+                {% empty %}
+                <div class="no-groups">No device groups with schedules found</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.filter-container {
+    position: relative;
+    display: inline-block;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.filter-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filter-button:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.filter-icon {
+    width: 18px;
+    height: 18px;
+    filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(288deg) brightness(102%) contrast(102%);
+}
+
+.filter-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    margin-top: 8px;
+    z-index: 1000;
+    display: none;
+}
+
+.filter-dropdown.show {
+    display: block;
+}
+
+.filter-section {
+    margin-bottom: 16px;
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.filter-option:hover {
+    background-color: #f3f4f6;
+}
+
+.filter-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+.filter-label {
+    font-size: 14px;
+    color: #111827;
+    cursor: pointer;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge {
+    background: #e5e7eb;
+    color: #4b5563;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.scroll-container {
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.no-groups {
+    color: #6b7280;
+    font-size: 14px;
+    padding: 8px;
+    text-align: center;
+    font-style: italic;
+}
+
+@media (max-width: 480px) {
+    .filter-dropdown {
+        width: 280px;
+        right: -50px;
+    }
+    
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButton = document.getElementById('schedule-filter-button');
+    const filterDropdown = document.getElementById('schedule-filter-dropdown');
+    
+    filterButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        filterDropdown.classList.toggle('show');
+    });
+    
+    document.addEventListener('click', function() {
+        filterDropdown.classList.remove('show');
+    });
+    
+    filterDropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    document.querySelectorAll('.filter-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            applyFilters();
+        });
+    });
+    
+    function applyFilters() {
+        const selectedTypes = Array.from(
+            document.querySelectorAll('input[name="schedule_type"]:checked')
+        ).map(el => el.value);
+        
+        const selectedGroups = Array.from(
+            document.querySelectorAll('input[name="device_group"]:checked')
+        ).map(el => el.value);
+        
+        const params = new URLSearchParams();
+        
+        if (selectedTypes.length > 0) {
+            params.append('type', selectedTypes.join(','));
+        }
+        
+        if (selectedGroups.length > 0) {
+            params.append('group', selectedGroups.join(','));
+        }
+        
+        const currentParams = new URLSearchParams(window.location.search);
+        const currentQuery = currentParams.get('q');
+        const currentSort = currentParams.get('sort');
+        const currentOrder = currentParams.get('order');
+        
+        if (currentQuery) {
+            params.append('q', currentQuery);
+        }
+        
+        if (currentSort) {
+            params.append('sort', currentSort);
+        }
+        
+        if (currentOrder) {
+            params.append('order', currentOrder);
+        }
+        
+        window.location.search = params.toString();
+    }
+    
+    function initCheckboxStates() {
+        const params = new URLSearchParams(window.location.search);
+        
+        const types = params.get('type')?.split(',') || [];
+        document.querySelectorAll('input[name="schedule_type"]').forEach(cb => {
+            cb.checked = types.includes(cb.value);
+        });
+        
+        const groups = params.get('group')?.split(',') || [];
+        document.querySelectorAll('input[name="device_group"]').forEach(cb => {
+            cb.checked = groups.includes(cb.value);
+        });
+    }
+    
+    initCheckboxStates();
+});
+</script>

@@ -1,0 +1,1453 @@
+<div class="row h-100">
+    <div class="col-md-3 h-100">    
+        <div class="card h-100 modern-card">
+            <div class="card-header bg-gradient-gray py-3 border-bottom">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tv me-2"></i>
+                    Digital Signage Control
+                </h5>
+            </div>
+            <div class="card-body d-flex flex-column p-3">
+                
+                <div class="calendar-mini-nav mb-3">
+                    <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                        <button class="btn btn-sm btn-outline-secondary" id="prev-month">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="current-month-year" class="fw-bold text-dark small"></span>
+                        <button class="btn btn-sm btn-outline-secondary" id="next-month">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="device-group-filter mb-3">
+                    <label class="form-label fw-bold small mb-1">Filter by Device Group:</label>
+                    <select class="form-select form-select-sm" id="device-group-filter">
+                        <option value="">All Groups</option>
+                        {% for group in device_groups_with_schedules %}
+                            <option value="{{ group.id }}" {% if active_group_filter == group.id|stringformat:"i" %}selected{% endif %}>
+                                {{ group.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="media-player-section mb-3">
+                    <div class="media-wrapper">
+                        <div class="media-box mb-2 ratio ratio-16x9 bg-light rounded shadow-sm" id="media-container">
+                            {% if current_schedule and current_media_url %}
+                                {% if current_media_type == 'image' %}
+                                    <img src="{{ current_media_url }}" alt="{{ current_schedule.schedule_name }}" class="w-100 h-100 object-fit-cover rounded media-content" id="current-media">
+                                {% elif current_media_type == 'video' %}
+                                    <video src="{{ current_media_url }}" class="w-100 h-100 object-fit-cover rounded media-content" autoplay muted loop controls id="current-media"></video>
+                                {% else %}
+                                    <div class="d-flex flex-column justify-content-center align-items-center h-100 p-2 text-center">
+                                        <h6 class="mb-2">{{ current_schedule.schedule_name }}</h6>
+                                        <p class="small text-muted mb-0">Media file not supported for preview</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <video src="/media/assets/loading.MP4" class="w-100 h-100 object-fit-cover rounded media-content" autoplay muted loop id="current-media"></video>
+                            {% endif %}
+                            <div class="media-overlay">
+                                <div class="loading-indicator">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="controls-wrapper">
+                            <div class="d-flex justify-content-center gap-2">
+                                <button class="btn btn-sm btn-outline-secondary control-btn" id="btn-previous" title="Previous" data-current-index="{{ current_index }}">
+                                    <i class="fas fa-step-backward"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary control-btn" id="btn-play" title="Play Fullscreen" 
+                                    data-media-url="{% if current_schedule and current_media_url %}{{ current_media_url }}{% else %}/media/assets/loading.MP4{% endif %}"
+                                    data-media-type="{% if current_schedule %}{{ current_media_type }}{% else %}video{% endif %}">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning control-btn" id="btn-skip" title="Skip" data-schedule-id="{% if current_schedule %}{{ current_schedule.id }}{% endif %}">
+                                    <i class="fas fa-forward"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary control-btn" id="btn-next" title="Next" data-current-index="{{ current_index }}">
+                                    <i class="fas fa-step-forward"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="schedule-section flex-grow-1">
+                    <div class="schedule-header mb-2">
+                        <h6 class="mb-0 text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Today's Schedule
+                        </h6>
+                    </div>
+                    <div class="table-responsive schedule-table-container">
+                        <table class="table table-sm table-hover mb-0 schedule-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">Schedule</th>
+                                    <th class="border-0">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-table-body">
+                                {% for schedule in todays_schedules %}
+                                <tr class="{% if schedule == current_schedule %}table-primary current-schedule{% endif %} schedule-row" 
+                                    data-schedule-id="{{ schedule.id }}"
+                                    data-schedule-name="{{ schedule.schedule_name }}"
+                                    data-schedule-date="{{ schedule.playback_date|date:'Y-m-d' }}"
+                                    data-schedule-start="{% if schedule.playback_start %}{{ schedule.playback_start|time:'H:i' %}{% endif %}"
+                                    data-schedule-end="{% if schedule.playback_end %}{{ schedule.playback_end|time:'H:i' %}{% endif %}">
+                                    <td class="border-0">
+                                        <div class="schedule-name">{{ schedule.schedule_name }}</div>
+                                    </td>
+                                    <td class="border-0">
+                                        <div class="schedule-time">
+                                            {% if schedule.playback_start and schedule.playback_end %}
+                                                {{ schedule.playback_start|time:"H:i" }} - {{ schedule.playback_end|time:"H:i" }}
+                                            {% else %}
+                                                All day
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted border-0">No schedules for today</td>
+                                </tr>
+                                {% endfor %}
+                                {% for i in "12345" %}
+                                    {% if forloop.counter0 >= todays_schedules|length %}
+                                    <tr class="placeholder-row">
+                                        <td class="border-0">&nbsp;</td>
+                                        <td class="border-0">&nbsp;</td>
+                                    </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9 h-100">
+        <div class="card h-100">
+            <div class="card-header bg-gradient-gray py-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Schedule Calendar
+                    </h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="calendar-container">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="scheduleDetailModal" tabindex="-1" aria-labelledby="scheduleDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="scheduleDetailModalLabel">Schedule Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="scheduleForm" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" id="modal-schedule-id" name="schedule_id" value="">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label fw-bold">Schedule Name:</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary lock-btn" data-field="name">
+                                <i class="fas fa-lock"></i>
+                            </button>
+                        </div>
+                        <input type="text" class="form-control" id="modal-schedule-name" name="schedule_name" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label fw-bold">Date:</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary lock-btn" data-field="date">
+                                <i class="fas fa-lock"></i>
+                            </button>
+                        </div>
+                        <input type="date" class="form-control" id="modal-schedule-date" name="playback_date" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Time:</label>
+                        <div class="row g-2">
+                            <div class="col">
+                                <input type="time" class="form-control" id="modal-schedule-start" name="playback_start">
+                            </div>
+                            <div class="col-auto align-self-center">to</div>
+                            <div class="col">
+                                <input type="time" class="form-control" id="modal-schedule-end" name="playback_end">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="btn-delete">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="dayScheduleModal" tabindex="-1" aria-labelledby="dayScheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="dayScheduleModalLabel">Day Schedule Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="dayScheduleForm" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" id="day-schedule-id" name="schedule_id" value="">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label fw-bold">Schedule List:</label>
+                        </div>
+                        <select class="form-control" id="day-schedule-list">
+                            <option value="">Select a schedule</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label fw-bold">Date:</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary lock-btn" data-field="day-date">
+                                <i class="fas fa-lock"></i>
+                            </button>
+                        </div>
+                        <input type="date" class="form-control" id="day-schedule-date" name="playback_date" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Time:</label>
+                        <div class="row g-2">
+                            <div class="col">
+                                <input type="time" class="form-control" id="day-schedule-start" name="playback_start">
+                            </div>
+                            <div class="col-auto align-self-center">to</div>
+                            <div class="col">
+                                <input type="time" class="form-control" id="day-schedule-end" name="playback_end">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="btn-day-delete">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.modern-card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.modern-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-mini-nav {
+    animation: slideInDown 0.5s ease-out;
+}
+
+.calendar-mini-nav .btn {
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-mini-nav .btn:hover {
+    transform: scale(1.1);
+}
+
+#current-month-year {
+    font-size: 14px;
+    min-width: 120px;
+    text-align: center;
+}
+
+.device-group-filter {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.media-player-section {
+    animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.media-wrapper {
+    position: relative;
+}
+
+.media-box {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.media-box:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+}
+
+.media-content {
+    transition: all 0.3s ease;
+}
+
+.media-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.media-box.loading .media-overlay {
+    opacity: 1;
+}
+
+.loading-indicator {
+    display: none;
+}
+
+.media-box.loading .loading-indicator {
+    display: block;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.controls-wrapper {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.control-btn {
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+}
+
+.control-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.control-btn:hover::before {
+    left: 100%;
+}
+
+.schedule-section {
+    animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.schedule-header {
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.schedule-table-container {
+    height: 290px;
+    overflow-y: auto;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.schedule-table {
+    margin: 0;
+}
+
+.schedule-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 1;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.schedule-row {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.schedule-row:hover {
+    background-color: #f8f9fa !important;
+    transform: translateX(5px);
+}
+
+.schedule-row.current-schedule {
+    background-color: #cfe2ff !important;
+    border-left: 3px solid #007bff;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.schedule-name {
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.schedule-time {
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+#calendar-container {
+    height: calc(100% - 5px);
+    min-height: 650px;
+    max-height: 750px;
+    overflow-y: auto;
+}
+
+.bg-gradient-gray {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.bg-gradient-gray h5 {
+    color: #495057;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.calendar-header-day {
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #6c757d;
+    padding: 8px 0;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: #dee2e6;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.calendar-day {
+    background: white;
+    min-height: 100px;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.calendar-day:hover {
+    background-color: #f8f9fa;
+}
+
+.calendar-day.has-schedules {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196f3;
+}
+
+.calendar-day.has-schedules:hover {
+    background-color: #bbdefb;
+}
+
+.calendar-day.today {
+    background-color: #fff3e0;
+    border-left: 4px solid #ff9800;
+}
+
+.calendar-day.today.has-schedules {
+    background-color: #e8f5e8;
+    border-left: 4px solid #4caf50;
+}
+
+.calendar-day.empty-day {
+    background-color: #f8f9fa;
+    color: #adb5bd;
+    cursor: default;
+}
+
+.calendar-day.empty-day:hover {
+    background-color: #f8f9fa;
+}
+
+.day-number {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 8px;
+    text-align: right;
+}
+
+.schedule-count {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #2196f3;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.schedule-time-range {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+.card {
+    min-height: 750px;
+}
+
+.placeholder-row {
+    height: 40px;
+    opacity: 0;
+}
+
+.placeholder-row td {
+    height: 40px;
+    vertical-align: middle;
+}
+
+#schedule-table-body tr {
+    min-height: 40px;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translate3d(0, -100%, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 40px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-mini-nav #current-month-year {
+        min-width: 100px;
+        font-size: 12px;
+    }
+    
+    .control-btn {
+        padding: 4px 8px;
+    }
+    
+    .schedule-name {
+        font-size: 12px;
+    }
+    
+    .schedule-time {
+        font-size: 11px;
+    }
+}
+</style>
+
+{{ calendar_data|json_script:"calendar-data" }}
+<input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+<input type="hidden" id="active-group-filter" value="{{ active_group_filter }}">
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarDataElement = document.getElementById('calendar-data');
+    const csrfTokenElement = document.getElementById('csrf-token');
+    const activeGroupFilterElement = document.getElementById('active-group-filter');
+    
+    let calendarData = calendarDataElement ? JSON.parse(calendarDataElement.textContent) : {};
+    const csrfToken = csrfTokenElement ? csrfTokenElement.value : '';
+    const activeGroupFilter = activeGroupFilterElement ? activeGroupFilterElement.value : '';
+    
+    const scheduleRows = document.querySelectorAll('.schedule-row');
+    const scheduleForm = document.getElementById('scheduleForm');
+    const dayScheduleForm = document.getElementById('dayScheduleForm');
+    const deleteBtn = document.getElementById('btn-delete');
+    const dayDeleteBtn = document.getElementById('btn-day-delete');
+    
+    const btnPrevious = document.getElementById('btn-previous');
+    const btnPlay = document.getElementById('btn-play');
+    const btnSkip = document.getElementById('btn-skip');
+    const btnNext = document.getElementById('btn-next');
+    
+    const deviceGroupFilter = document.getElementById('device-group-filter');
+    
+    let currentCalendarDate = new Date();
+    
+    let autoRefreshInterval;
+    let currentScheduleId = null;
+    
+    // Initialize calendar on page load - always render with current data
+    renderCalendar();
+    
+    // Start auto-refresh for media player
+    startAutoRefresh();
+    
+    // Handle device group filter change
+    if (deviceGroupFilter) {
+        deviceGroupFilter.addEventListener('change', function() {
+            const groupId = this.value;
+            const url = new URL(window.location);
+            
+            if (groupId) {
+                url.searchParams.set('group', groupId);
+            } else {
+                url.searchParams.delete('group');
+            }
+            
+            window.location.href = url.toString();
+        });
+    }
+    
+    document.getElementById('prev-month').addEventListener('click', function() {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+        fetchCalendarData();
+    });
+    
+    document.getElementById('next-month').addEventListener('click', function() {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+        fetchCalendarData();
+    });
+    
+    function startAutoRefresh() {
+        autoRefreshInterval = setInterval(function() {
+            checkForScheduleUpdates();
+        }, 10000);
+    }
+    
+    function checkForScheduleUpdates() {
+        const groupId = deviceGroupFilter ? deviceGroupFilter.value : '';
+        let url = '?action=check_current';
+        if (groupId) {
+            url += '&group=' + groupId;
+        }
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const newScheduleId = data.current_schedule ? data.current_schedule.id : null;
+                    
+                    if (newScheduleId !== currentScheduleId) {
+                        currentScheduleId = newScheduleId;
+                        updateMediaPlayerAuto(data);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error checking for schedule updates:', error);
+            });
+    }
+    
+    function updateMediaPlayerAuto(data) {
+        const mediaContainer = document.getElementById('media-container');
+        if (!mediaContainer) return;
+        
+        mediaContainer.classList.add('loading');
+        
+        setTimeout(() => {
+            const schedule = data.current_schedule;
+            const mediaUrl = data.current_media_url;
+            const mediaType = data.current_media_type;
+            
+            if (schedule && mediaUrl && mediaType) {
+                if (mediaType === 'image') {
+                    mediaContainer.innerHTML = '<img src="' + mediaUrl + '" alt="' + schedule.schedule_name + '" class="w-100 h-100 object-fit-cover rounded media-content" id="current-media">';
+                } else if (mediaType === 'video') {
+                    mediaContainer.innerHTML = '<video src="' + mediaUrl + '" class="w-100 h-100 object-fit-cover rounded media-content" autoplay muted loop controls id="current-media"></video>';
+                } else {
+                    mediaContainer.innerHTML = '<div class="d-flex flex-column justify-content-center align-items-center h-100 p-2 text-center">' +
+                        '<h6 class="mb-2">' + schedule.schedule_name + '</h6>' +
+                        '<p class="small text-muted mb-0">Media file not supported for preview</p>' +
+                        '</div>';
+                }
+            } else {
+                mediaContainer.innerHTML = '<video src="/media/assets/loading.MP4" class="w-100 h-100 object-fit-cover rounded media-content" autoplay muted loop id="current-media"></video>';
+            }
+            
+            mediaContainer.innerHTML += '<div class="media-overlay"><div class="loading-indicator"><div class="spinner"></div></div></div>';
+            
+            if (btnPlay) {
+                btnPlay.setAttribute('data-media-url', mediaUrl || '/media/assets/loading.MP4');
+                btnPlay.setAttribute('data-media-type', mediaType || 'video');
+            }
+            if (btnSkip && schedule) {
+                btnSkip.setAttribute('data-schedule-id', schedule.id);
+            }
+            if (btnPrevious && data.current_index !== undefined) {
+                btnPrevious.setAttribute('data-current-index', data.current_index);
+            }
+            if (btnNext && data.current_index !== undefined) {
+                btnNext.setAttribute('data-current-index', data.current_index);
+            }
+            
+            updateScheduleHighlighting(schedule ? schedule.id : null);
+            
+            mediaContainer.classList.remove('loading');
+        }, 500);
+    }
+    
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(autoRefreshInterval);
+        } else {
+            startAutoRefresh();
+        }
+    });
+    
+    window.addEventListener('beforeunload', function() {
+        clearInterval(autoRefreshInterval);
+    });
+    
+    function fetchCalendarData() {
+        const year = currentCalendarDate.getFullYear();
+        const month = currentCalendarDate.getMonth() + 1;
+        const groupId = deviceGroupFilter ? deviceGroupFilter.value : '';
+        
+        let url = '?action=calendar&year=' + year + '&month=' + month;
+        if (groupId) {
+            url += '&group=' + groupId;
+        }
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    calendarData = {
+                        year: year,
+                        month: month,
+                        schedules: data.schedules
+                    };
+                    renderCalendar();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching calendar data:', error);
+                renderCalendar();
+            });
+    }
+    
+    function renderCalendar() {
+        const year = currentCalendarDate.getFullYear();
+        const month = currentCalendarDate.getMonth();
+        
+        const schedulesByDate = {};
+        if (calendarData && calendarData.schedules) {
+            calendarData.schedules.forEach(schedule => {
+                const date = schedule.playback_date;
+                if (!schedulesByDate[date]) {
+                    schedulesByDate[date] = [];
+                }
+                schedulesByDate[date].push(schedule);
+            });
+        }
+        
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+        document.getElementById('current-month-year').textContent = monthNames[month] + ' ' + year;
+        
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
+        
+        let calendarHTML = '<div class="calendar-header">' +
+            '<div class="calendar-header-day">Sun</div>' +
+            '<div class="calendar-header-day">Mon</div>' +
+            '<div class="calendar-header-day">Tue</div>' +
+            '<div class="calendar-header-day">Wed</div>' +
+            '<div class="calendar-header-day">Thu</div>' +
+            '<div class="calendar-header-day">Fri</div>' +
+            '<div class="calendar-header-day">Sat</div>' +
+            '</div>' +
+            '<div class="calendar-grid">';
+        
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            calendarHTML += '<div class="calendar-day empty-day"></div>';
+        }
+        
+        const today = new Date();
+        for (let day = 1; day <= daysInMonth; day++) {
+            const currentDate = new Date(year, month, day);
+            const adjustedDate = new Date(currentDate);
+            adjustedDate.setDate(adjustedDate.getDate() + 1);
+            
+            const dateString = adjustedDate.toISOString().split('T')[0];
+            const daySchedules = schedulesByDate[dateString] || [];
+            
+            const isToday = currentDate.toDateString() === today.toDateString();
+            const hasSchedules = daySchedules.length > 0;
+            
+            let dayClass = 'calendar-day';
+            if (isToday) dayClass += ' today';
+            if (hasSchedules) dayClass += ' has-schedules';
+            
+            let scheduleInfo = '';
+            if (hasSchedules) {
+                const startTimes = daySchedules.filter(s => s.playback_start).map(s => s.playback_start);
+                const endTimes = daySchedules.filter(s => s.playback_end).map(s => s.playback_end);
+                
+                const earliestStart = startTimes.length > 0 ? startTimes.reduce((a, b) => a < b ? a : b) : null;
+                const latestEnd = endTimes.length > 0 ? endTimes.reduce((a, b) => a > b ? a : b) : null;
+                
+                scheduleInfo = '<div class="schedule-count">' + daySchedules.length + '</div>';
+                if (earliestStart && latestEnd) {
+                    scheduleInfo += '<div class="schedule-time-range">' + earliestStart + ' - ' + latestEnd + '</div>';
+                }
+            }
+            
+            calendarHTML += '<div class="' + dayClass + '" data-date="' + dateString + '" data-day="' + day + '">' +
+                '<div class="day-number">' + day + '</div>' +
+                scheduleInfo +
+                '</div>';
+        }
+        
+        calendarHTML += '</div>';
+        const calendarContainer = document.getElementById('calendar-container');
+        if (calendarContainer) {
+            calendarContainer.innerHTML = calendarHTML;
+        }
+        
+        document.querySelectorAll('.calendar-day:not(.empty-day)').forEach(dayElement => {
+            dayElement.addEventListener('click', function() {
+                const dateString = this.getAttribute('data-date');
+                const daySchedules = schedulesByDate[dateString] || [];
+                
+                if (daySchedules.length > 0) {
+                    showDayScheduleModal(dateString, daySchedules);
+                }
+            });
+        });
+    }
+    
+    function showDayScheduleModal(dateString, daySchedules) {
+        const scheduleList = document.getElementById('day-schedule-list');
+        if (scheduleList) {
+            scheduleList.innerHTML = '<option value="">Select a schedule</option>';
+            
+            daySchedules.forEach(schedule => {
+                const option = document.createElement('option');
+                option.value = schedule.id;
+                option.textContent = schedule.schedule_name + ' (' + (schedule.playback_start || 'All day') + ' - ' + (schedule.playback_end || '') + ')';
+                option.dataset.startTime = schedule.playback_start || '';
+                option.dataset.endTime = schedule.playback_end || '';
+                scheduleList.appendChild(option);
+            });
+        }
+        
+        const dayScheduleDate = document.getElementById('day-schedule-date');
+        if (dayScheduleDate) {
+            dayScheduleDate.value = dateString;
+        }
+        
+        const dayScheduleId = document.getElementById('day-schedule-id');
+        const dayScheduleStart = document.getElementById('day-schedule-start');
+        const dayScheduleEnd = document.getElementById('day-schedule-end');
+        
+        if (dayScheduleId) dayScheduleId.value = '';
+        if (dayScheduleStart) dayScheduleStart.value = '';
+        if (dayScheduleEnd) dayScheduleEnd.value = '';
+        
+        const dateLockBtn = document.querySelector('.lock-btn[data-field="day-date"]');
+        if (dateLockBtn) {
+            dateLockBtn.innerHTML = '<i class="fas fa-lock"></i>';
+            dateLockBtn.classList.remove('btn-success');
+            dateLockBtn.classList.add('btn-outline-secondary');
+        }
+        if (dayScheduleDate) dayScheduleDate.readOnly = true;
+        
+        const modalElement = document.getElementById('dayScheduleModal');
+        if (modalElement && typeof bootstrap !== 'undefined') {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    }
+    
+    const dayScheduleList = document.getElementById('day-schedule-list');
+    if (dayScheduleList) {
+        dayScheduleList.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const dayScheduleId = document.getElementById('day-schedule-id');
+            const dayScheduleStart = document.getElementById('day-schedule-start');
+            const dayScheduleEnd = document.getElementById('day-schedule-end');
+            
+            if (selectedOption.value && dayScheduleId && dayScheduleStart && dayScheduleEnd) {
+                dayScheduleId.value = selectedOption.value;
+                dayScheduleStart.value = selectedOption.dataset.startTime;
+                dayScheduleEnd.value = selectedOption.dataset.endTime;
+            } else if (dayScheduleId && dayScheduleStart && dayScheduleEnd) {
+                dayScheduleId.value = '';
+                dayScheduleStart.value = '';
+                dayScheduleEnd.value = '';
+            }
+        });
+    }
+    
+    scheduleRows.forEach(row => {
+        row.addEventListener('click', function() {
+            const id = this.getAttribute('data-schedule-id');
+            const name = this.getAttribute('data-schedule-name');
+            const date = this.getAttribute('data-schedule-date');
+            const start = this.getAttribute('data-schedule-start');
+            const end = this.getAttribute('data-schedule-end');
+            
+            const modalScheduleId = document.getElementById('modal-schedule-id');
+            const modalScheduleName = document.getElementById('modal-schedule-name');
+            const modalScheduleDate = document.getElementById('modal-schedule-date');
+            const modalScheduleStart = document.getElementById('modal-schedule-start');
+            const modalScheduleEnd = document.getElementById('modal-schedule-end');
+            
+            if (modalScheduleId) modalScheduleId.value = id;
+            if (modalScheduleName) modalScheduleName.value = name;
+            if (modalScheduleDate) modalScheduleDate.value = date;
+            if (modalScheduleStart) modalScheduleStart.value = start || '';
+            if (modalScheduleEnd) modalScheduleEnd.value = end || '';
+            
+            document.querySelectorAll('#scheduleDetailModal .lock-btn').forEach(btn => {
+                btn.innerHTML = '<i class="fas fa-lock"></i>';
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-secondary');
+            });
+            
+            if (modalScheduleName) modalScheduleName.readOnly = true;
+            if (modalScheduleDate) modalScheduleDate.readOnly = true;
+            
+            const modalElement = document.getElementById('scheduleDetailModal');
+            if (modalElement && typeof bootstrap !== 'undefined') {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
+        });
+    });
+    
+    document.querySelectorAll('#scheduleDetailModal .lock-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const field = this.getAttribute('data-field');
+            const input = field === 'name' 
+                ? document.getElementById('modal-schedule-name') 
+                : document.getElementById('modal-schedule-date');
+            
+            if (input && input.readOnly) {
+                input.readOnly = false;
+                this.innerHTML = '<i class="fas fa-lock-open"></i>';
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-success');
+            } else if (input) {
+                input.readOnly = true;
+                this.innerHTML = '<i class="fas fa-lock"></i>';
+                this.classList.remove('btn-success');
+                this.classList.add('btn-outline-secondary');
+            }
+        });
+    });
+    
+    document.querySelectorAll('#dayScheduleModal .lock-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = document.getElementById('day-schedule-date');
+            
+            if (input && input.readOnly) {
+                input.readOnly = false;
+                this.innerHTML = '<i class="fas fa-lock-open"></i>';
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-success');
+            } else if (input) {
+                input.readOnly = true;
+                this.innerHTML = '<i class="fas fa-lock"></i>';
+                this.classList.remove('btn-success');
+                this.classList.add('btn-outline-secondary');
+            }
+        });
+    });
+    
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const scheduleId = document.getElementById('modal-schedule-id');
+            if (!scheduleId || !scheduleId.value) return;
+            
+            if (confirm('Are you sure you want to delete this schedule?')) {
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                formData.append('action', 'delete');
+                formData.append('schedule_id', scheduleId.value);
+                
+                fetch('', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                }).catch(error => {
+                    console.error('Error deleting schedule:', error);
+                });
+            }
+        });
+    }
+    
+    if (dayDeleteBtn) {
+        dayDeleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const scheduleId = document.getElementById('day-schedule-id');
+            if (!scheduleId || !scheduleId.value) {
+                alert('Please select a schedule to delete');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete this schedule?')) {
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                formData.append('action', 'delete');
+                formData.append('schedule_id', scheduleId.value);
+                
+                fetch('', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                }).catch(error => {
+                    console.error('Error deleting schedule:', error);
+                });
+            }
+        });
+    }
+    
+    if (scheduleForm) {
+        scheduleForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    console.error('Error updating schedule');
+                }
+            }).catch(error => {
+                console.error('Error updating schedule:', error);
+            });
+        });
+    }
+    
+    if (dayScheduleForm) {
+        dayScheduleForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const scheduleId = document.getElementById('day-schedule-id');
+            if (!scheduleId || !scheduleId.value) {
+                alert('Please select a schedule to update');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            
+            fetch('', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    console.error('Error updating schedule');
+                }
+            }).catch(error => {
+                console.error('Error updating schedule:', error);
+            });
+        });
+    }
+    
+    if (btnPrevious) {
+        btnPrevious.addEventListener('click', function() {
+            const currentIndex = parseInt(this.getAttribute('data-current-index'));
+            if (!isNaN(currentIndex)) {
+                navigateSchedule('prev', currentIndex);
+            }
+        });
+    }
+    
+    if (btnPlay) {
+        btnPlay.addEventListener('click', function() {
+            const mediaUrl = this.getAttribute('data-media-url');
+            const mediaType = this.getAttribute('data-media-type');
+            
+            if (!mediaUrl) return;
+            
+            const fullscreenContainer = document.createElement('div');
+            fullscreenContainer.id = 'fullscreen-media-container';
+            fullscreenContainer.style.position = 'fixed';
+            fullscreenContainer.style.top = '0';
+            fullscreenContainer.style.left = '0';
+            fullscreenContainer.style.width = '100vw';
+            fullscreenContainer.style.height = '100vh';
+            fullscreenContainer.style.backgroundColor = 'black';
+            fullscreenContainer.style.zIndex = '9999';
+            fullscreenContainer.style.display = 'flex';
+            fullscreenContainer.style.justifyContent = 'center';
+            fullscreenContainer.style.alignItems = 'center';
+            fullscreenContainer.style.margin = '0';
+            fullscreenContainer.style.padding = '0';
+            
+            let mediaElement;
+            if (mediaType === 'image') {
+                mediaElement = document.createElement('img');
+                mediaElement.src = mediaUrl;
+                mediaElement.style.width = 'auto';
+                mediaElement.style.height = 'auto';
+                mediaElement.style.maxWidth = '100vw';
+                mediaElement.style.maxHeight = '100vh';
+                mediaElement.style.objectFit = 'contain';
+                mediaElement.style.display = 'block';
+            } else {
+                mediaElement = document.createElement('video');
+                mediaElement.src = mediaUrl;
+                mediaElement.style.width = 'auto';
+                mediaElement.style.height = 'auto';
+                mediaElement.style.maxWidth = '100vw';
+                mediaElement.style.maxHeight = '100vh';
+                mediaElement.style.objectFit = 'contain';
+                mediaElement.style.display = 'block';
+                mediaElement.autoplay = true;
+                mediaElement.muted = true;
+                mediaElement.loop = true;
+                mediaElement.controls = false;
+            }
+            
+            fullscreenContainer.appendChild(mediaElement);
+            
+            document.body.appendChild(fullscreenContainer);
+            
+            const requestFullscreen = function() {
+                if (fullscreenContainer.requestFullscreen) {
+                    fullscreenContainer.requestFullscreen().catch(err => {
+                        console.error('Error attempting to enable fullscreen:', err);
+                    });
+                } else if (fullscreenContainer.webkitRequestFullscreen) {
+                    fullscreenContainer.webkitRequestFullscreen();
+                } else if (fullscreenContainer.msRequestFullscreen) {
+                    fullscreenContainer.msRequestFullscreen();
+                } else if (fullscreenContainer.mozRequestFullScreen) {
+                    fullscreenContainer.mozRequestFullScreen();
+                }
+            };
+            
+            const handleKeyDown = function(e) {
+                if (e.key === 'Escape') {
+                    exitFullscreen();
+                }
+            };
+            
+            const handleFullscreenChange = function() {
+                if (!document.fullscreenElement && 
+                    !document.webkitFullscreenElement && 
+                    !document.msFullscreenElement && 
+                    !document.mozFullScreenElement) {
+                    cleanupFullscreen();
+                }
+            };
+            
+            const exitFullscreen = function() {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                }
+            };
+            
+            const cleanupFullscreen = function() {
+                const container = document.getElementById('fullscreen-media-container');
+                if (container && container.parentNode) {
+                    container.parentNode.removeChild(container);
+                }
+                document.removeEventListener('keydown', handleKeyDown);
+                document.removeEventListener('fullscreenchange', handleFullscreenChange);
+                document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+                document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+                document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+                document.removeEventListener('keydown', preventRefresh);
+                document.removeEventListener('contextmenu', preventContextMenu);
+            };
+            
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.addEventListener('msfullscreenchange', handleFullscreenChange);
+            document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+            
+            const preventRefresh = function(e) {
+                if (document.fullscreenElement || 
+                    document.webkitFullscreenElement || 
+                    document.msFullscreenElement || 
+                    document.mozFullScreenElement) {
+                    if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                }
+            };
+            
+            document.addEventListener('keydown', preventRefresh);
+            
+            const preventContextMenu = function(e) {
+                if (document.fullscreenElement || 
+                    document.webkitFullscreenElement || 
+                    document.msFullscreenElement || 
+                    document.mozFullScreenElement) {
+                    e.preventDefault();
+                    return false;
+                }
+            };
+            
+            document.addEventListener('contextmenu', preventContextMenu);
+            
+            requestFullscreen();
+        });
+    }
+    
+    if (btnSkip) {
+        btnSkip.addEventListener('click', function() {
+            const scheduleId = this.getAttribute('data-schedule-id');
+            if (scheduleId) {
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                formData.append('action', 'skip');
+                formData.append('schedule_id', scheduleId);
+                
+                fetch('', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                }).catch(error => {
+                    console.error('Error skipping schedule:', error);
+                });
+            }
+        });
+    }
+    
+    if (btnNext) {
+        btnNext.addEventListener('click', function() {
+            const currentIndex = parseInt(this.getAttribute('data-current-index'));
+            if (!isNaN(currentIndex)) {
+                navigateSchedule('next', currentIndex);
+            }
+        });
+    }
+    
+    function navigateSchedule(direction, currentIndex) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', csrfToken);
+        formData.append('action', 'navigate');
+        formData.append('direction', direction);
+        formData.append('current_index', currentIndex);
+        
+        const groupId = deviceGroupFilter ? deviceGroupFilter.value : '';
+        if (groupId) {
+            formData.append('group', groupId);
+        }
+        
+        fetch('', {
+            method: 'POST',
+            body: formData
+        }).then(response => response.json())
+          .then(data => {
+              if (data.status === 'success') {
+                  updateMediaPlayer(data.schedule);
+                  
+                  if (btnPrevious) btnPrevious.setAttribute('data-current-index', data.new_index);
+                  if (btnNext) btnNext.setAttribute('data-current-index', data.new_index);
+                  if (btnPlay) {
+                      btnPlay.setAttribute('data-media-url', data.schedule.media_url || '');
+                      btnPlay.setAttribute('data-media-type', data.schedule.media_type || '');
+                  }
+                  if (btnSkip) btnSkip.setAttribute('data-schedule-id', data.schedule.id);
+                  
+                  updateScheduleHighlighting(data.schedule.id);
+              } else {
+                  console.warn('Navigation failed:', data.message || 'Unknown error');
+              }
+          })
+          .catch(error => {
+              console.error('Error navigating schedule:', error);
+          });
+    }
+    
+    function updateMediaPlayer(scheduleData) {
+        const mediaBox = document.querySelector('.media-box');
+        if (!mediaBox) return;
+        
+        const mediaUrl = scheduleData.media_url;
+        const mediaType = scheduleData.media_type;
+        const scheduleName = scheduleData.name;
+        
+        if (mediaUrl && mediaType) {
+            if (mediaType === 'image') {
+                mediaBox.innerHTML = '<img src="' + mediaUrl + '" alt="' + scheduleName + '" class="w-100 h-100 object-fit-cover rounded media-content" id="current-media">';
+            } else if (mediaType === 'video') {
+                mediaBox.innerHTML = '<video src="' + mediaUrl + '" class="w-100 h-100 object-fit-cover rounded media-content" autoplay muted loop controls id="current-media"></video>';
+            } else {
+                mediaBox.innerHTML = '<div class="d-flex flex-column justify-content-center align-items-center h-100 p-2 text-center">' +
+                    '<h6 class="mb-2">' + scheduleName + '</h6>' +
+                    '<p class="small text-muted mb-0">Media file not supported for preview</p>' +
+                    '</div>';
+            }
+        } else {
+            mediaBox.innerHTML = '<video src="/media/assets/loading.MP4" class="w-100 h-100 object-fit-cover rounded media-content" autoplay muted loop id="current-media"></video>';
+        }
+        
+        mediaBox.innerHTML += '<div class="media-overlay"><div class="loading-indicator"><div class="spinner"></div></div></div>';
+        
+        if (btnPlay) {
+            btnPlay.setAttribute('data-media-url', mediaUrl || '/media/assets/loading.MP4');
+            btnPlay.setAttribute('data-media-type', mediaType || 'video');
+        }
+    }
+    
+    function updateScheduleHighlighting(currentScheduleId) {
+        document.querySelectorAll('.schedule-row').forEach(row => {
+            if (row.getAttribute('data-schedule-id') === currentScheduleId.toString()) {
+                row.classList.add('table-primary', 'current-schedule');
+            } else {
+                row.classList.remove('table-primary', 'current-schedule');
+            }
+        });
+    }
+    
+    if (!calendarData || !calendarData.schedules) {
+        const currentYear = currentCalendarDate.getFullYear();
+        const currentMonth = currentCalendarDate.getMonth() + 1;
+        const groupId = deviceGroupFilter ? deviceGroupFilter.value : '';
+        
+        let initialUrl = '?action=calendar&year=' + currentYear + '&month=' + currentMonth;
+        if (groupId) {
+            initialUrl += '&group=' + groupId;
+        }
+        
+        fetch(initialUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    calendarData = {
+                        year: currentYear,
+                        month: currentMonth,
+                        schedules: data.schedules
+                    };
+                    renderCalendar();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching initial calendar data:', error);
+            });
+    }
+    
+    const currentScheduleRow = document.querySelector('.schedule-row.table-primary');
+    if (currentScheduleRow) {
+        currentScheduleId = parseInt(currentScheduleRow.getAttribute('data-schedule-id'));
+    }
+});
+</script>

@@ -1,0 +1,431 @@
+<div class="sidebar-wrapper">
+    <aside class="primary-sidebar">
+        <div class="logo-container">
+            <a href="/" class="logo-link">
+                <img src="/media/assets/logo.png" alt="Dashboard Logo" class="logo-image">
+            </a>
+        </div>
+        
+        <ul class="sidebar-nav">
+            <li class="sidebar-item">
+                <a href="/content/" 
+                   class="sidebar-link {% if '/content' in request.path or request.path == '/recycle-bin/' %}active{% endif %}">
+                    <div class="icon-container">
+                        <img src="/media/assets/content.png" alt="Content" class="sidebar-icon">
+                    </div>
+                    <span class="sidebar-text">Content</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="/playlist/" 
+                   class="sidebar-link {% if '/playlist' in request.path or request.path == '/recycle-bin-playlist/' %}active{% endif %}">
+                    <div class="icon-container">
+                        <img src="/media/assets/playlist.png" alt="Playlist" class="sidebar-icon">
+                    </div>
+                    <span class="sidebar-text">Playlist</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="/schedules/" 
+                   class="sidebar-link {% if '/schedules' in request.path or request.path == '/recycle-bin-schedules/' %}active{% endif %}">
+                    <div class="icon-container">
+                        <img src="/media/assets/schedule.png" alt="Schedules" class="sidebar-icon">
+                    </div>
+                    <span class="sidebar-text">Schedules</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="/device/" 
+                   class="sidebar-link {% if '/device' in request.path %}active{% endif %}">
+                    <div class="icon-container">
+                        <img src="/media/assets/device.png" alt="Device" class="sidebar-icon">
+                    </div>
+                    <span class="sidebar-text">Device</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    {% if '/content' in request.path or '/playlist' in request.path or '/schedules' in request.path or '/device' in request.path or '/recycle-bin' in request.path or '/design/' in request.path %}
+    <aside class="secondary-sidebar" id="secondarySidebar">
+        <div class="sidebar-toggle" id="sidebarToggle">
+            <img src="/media/assets/arrow.png" alt="Toggle Sidebar" class="toggle-icon">
+        </div>
+        <div class="secondary-content">
+
+            {% if '/content' in request.path or request.path == '/recycle-bin/' or request.path == '/design/' %}
+                <div class="secondary-header">
+                    <h3 class="secondary-title">Content Management</h3>
+                    <div class="title-underline"></div>
+                </div>
+                <ul class="secondary-nav">
+                    <li class="secondary-item">
+                        <a href="/content/" 
+                           class="secondary-link {% if request.path == '/content/' %}active{% endif %}">
+                            <div class="link-indicator"></div>
+                            <span>All Content</span>
+                            <div class="link-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="secondary-item">
+                        <a href="/design/" 
+                        class="secondary-link {% if request.path == '/design/' %}active{% endif %}">
+                            <div class="link-indicator"></div>
+                            <span>My Design</span>
+                            <div class="link-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="secondary-item">
+                        <a href="/recycle-bin/" 
+                           class="secondary-link {% if request.path == '/recycle-bin/' %}active{% endif %}">
+                            <div class="link-indicator"></div>
+                            <span>Recycle Bin</span>
+                            <div class="link-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            {% endif %}
+
+            {% if '/playlist' in request.path or request.path == '/recycle-bin-playlist/' %}
+                <div class="secondary-header">
+                    <h3 class="secondary-title">Playlist Management</h3>
+                    <div class="title-underline"></div>
+                </div>
+                <ul class="secondary-nav">
+                    <li class="secondary-item">
+                        <a href="/playlist/" 
+                           class="secondary-link {% if request.path == '/playlist/' %}active{% endif %}">
+                            <div class="link-indicator"></div>
+                            <span>All Playlists</span>
+                            <div class="link-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="secondary-item">
+                        <a href="/recycle-bin-playlist/" 
+                           class="secondary-link {% if request.path == '/recycle-bin-playlist/' %}active{% endif %}">
+                            <div class="link-indicator"></div>
+                            <span>Recycle Bin</span>
+                            <div class="link-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            {% endif %}
+
+            {% if '/schedules' in request.path or request.path == '/recycle-bin-schedules/' %}
+                <div class="secondary-header">
+                    <h3 class="secondary-title">Schedule Management</h3>
+                    <div class="title-underline"></div>
+                </div>
+                <ul class="secondary-nav">
+                    <li class="secondary-item">
+                        <a href="/schedules/" 
+                           class="secondary-link {% if request.path == '/schedules/' %}active{% endif %}">
+                            <div class="link-indicator"></div>
+                            <span>All Schedules</span>
+                            <div class="link-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="secondary-item">
+                        <a href="/recycle-bin-schedules/" 
+                           class="secondary-link {% if request.path == '/recycle-bin-schedules/' %}active{% endif %}">
+                            <div class="link-indicator"></div>
+                            <span>Recycle Bin</span>
+                            <div class="link-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            {% endif %}
+
+            {% if '/device' in request.path%}
+                <div class="secondary-header">
+                    <h3 class="secondary-title">Device Management</h3>
+                    <div class="title-underline"></div>
+                </div>
+                <ul class="secondary-nav">
+                    <li class="secondary-item">
+                        <a href="/device/" 
+                           class="secondary-link {% if request.path == '/device/' %}active{% endif %}">
+                            <div class="link-indicator"></div>
+                            <span>All Devices</span>
+                            <div class="link-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            {% endif %}
+        </div>
+    </aside>
+    {% endif %}
+</div>
+
+<style>
+.sidebar-wrapper {
+    display: flex;
+    height: 100%;
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.primary-sidebar {
+    width: 75px;
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+    position: relative;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-container {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60px;
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+.logo-link:hover { background: transparent; }
+.logo-image { width: 32px; height: 32px; }
+
+.sidebar-nav {
+    list-style: none;
+    padding: 1rem 0;
+    margin: 0;
+    flex: 1;
+}
+
+.sidebar-item { margin-bottom: 0.5rem; }
+
+.sidebar-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0.75rem;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    margin: 0 0.5rem;
+    background: transparent;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+.sidebar-link.active {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+.sidebar-link.active::after {
+    content: '';
+    position: absolute;
+    left: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 70%;
+    background: #3498db;
+    border-radius: 2px;
+}
+
+.icon-container { position: relative; margin-bottom: 0.5rem; }
+.sidebar-icon {
+    width: 26px;
+    height: 26px;
+    filter: invert(1);
+    opacity: 0.9;
+    transition: opacity 0.15s ease;
+}
+.sidebar-link:hover .sidebar-icon,
+.sidebar-link.active .sidebar-icon { opacity: 1; }
+
+.sidebar-text {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-align: center;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+}
+
+.secondary-sidebar {
+    width: 220px;
+    background: white;
+    border-right: 1px solid #e8ecef;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 40;
+    display: flex;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+}
+
+.sidebar-toggle {
+    width: 24px;
+    height: 24px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: absolute;
+    left: 205px;
+    top: 27px;
+    z-index: 10;
+    transition: background-color 0.15s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+.sidebar-toggle:hover { background: #eceff1; }
+
+.toggle-icon { width: 16px; height: 16px; }
+
+.secondary-sidebar.collapsed {
+    transform: translateX(-100%);
+    margin-right: -220px;
+}
+.secondary-sidebar.collapsed .sidebar-toggle {
+    left: calc(100% + 10px);
+}
+
+.secondary-content {
+    padding: 1.5rem 0;
+    height: 100%;
+    width: 100%;
+}
+
+.secondary-header {
+    padding: 0 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.secondary-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 0.5rem;
+}
+
+.title-underline {
+    width: 30px;
+    height: 3px;
+    background: #3498db;
+    border-radius: 2px;
+}
+
+.secondary-nav { list-style: none; padding: 0; margin: 0; }
+.secondary-item { margin-bottom: 0.25rem; }
+
+.secondary-link {
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 1.5rem;
+    text-decoration: none;
+    color: #6c757d;
+    border-left: 3px solid transparent;
+    font-weight: 500;
+    position: relative;
+    gap: 0.75rem;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.secondary-link:hover {
+    background: #f5f7fa;
+    color: #495057;
+    border-left-color: #dee2e6;
+}
+
+.secondary-link.active {
+    background: #e6f0fb;
+    color: #1565c0;
+    border-left-color: #2196f3;
+}
+
+.link-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+}
+.secondary-link.active .link-indicator { background: #2196f3; opacity: 1; }
+
+.link-arrow {
+    margin-left: auto;
+    opacity: 0.8;
+    color: #b0b7bd;
+}
+.secondary-link.active .link-arrow { color: #2196f3; opacity: 1; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const secondarySidebar = document.getElementById('secondarySidebar');
+
+    if (secondarySidebar) {
+        secondarySidebar.classList.remove('collapsed');
+    }
+
+    if (sidebarToggle && secondarySidebar) {
+        sidebarToggle.addEventListener('click', function() {
+            secondarySidebar.classList.toggle('collapsed');
+
+            const toggleIcon = this.querySelector('.toggle-icon');
+            if (secondarySidebar.classList.contains('collapsed')) {
+                toggleIcon.src = "/media/assets/right_arrow.png";
+            } else {
+                toggleIcon.src = "/media/assets/arrow.png";
+            }
+        });
+    }
+});
+</script>

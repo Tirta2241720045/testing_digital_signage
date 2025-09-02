@@ -1,0 +1,449 @@
+<div class="table-container">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>
+                        <a href="?sort=schedule_name&order={% if sort == 'schedule_name' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ request.GET.q|urlencode }}" class="sortable-header">
+                            Name
+                            <span class="sort-icon">
+                                {% if sort == 'schedule_name' %}
+                                    {% if order == 'asc' %}↑{% else %}↓{% endif %}
+                                {% endif %}
+                            </span>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="?sort=schedule_type&order={% if sort == 'schedule_type' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ request.GET.q|urlencode }}" class="sortable-header">
+                            Type
+                            <span class="sort-icon">
+                                {% if sort == 'schedule_type' %}
+                                    {% if order == 'asc' %}↑{% else %}↓{% endif %}
+                                {% endif %}
+                            </span>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="?sort=publish_status&order={% if sort == 'publish_status' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ request.GET.q|urlencode }}" class="sortable-header">
+                            Status
+                            <span class="sort-icon">
+                                {% if sort == 'publish_status' %}
+                                    {% if order == 'asc' %}↑{% else %}↓{% endif %}
+                                {% endif %}
+                            </span>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="?sort=playback_date&order={% if sort == 'playback_date' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ request.GET.q|urlencode }}" class="sortable-header">
+                            Playback Date
+                            <span class="sort-icon">
+                                {% if sort == 'playback_date' %}
+                                    {% if order == 'asc' %}↑{% else %}↓{% endif %}
+                                {% endif %}
+                            </span>
+                        </a>
+                    </th>
+                    <th>Playback Time</th>
+                    <th>Device Groups</th>
+                    <th>
+                        <a href="?sort=updated_at&order={% if sort == 'updated_at' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ request.GET.q|urlencode }}" class="sortable-header">
+                            Updated
+                            <span class="sort-icon">
+                                {% if sort == 'updated_at' %}
+                                    {% if order == 'asc' %}↑{% else %}↓{% endif %}
+                                {% endif %}
+                            </span>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for schedule in schedules %}
+                <tr>
+                    <td>{{ schedule.schedule_name }}</td>
+                    <td>{{ schedule.get_schedule_type_display }}</td>
+                    <td>
+                        <span class="status-badge {% if schedule.publish_status == 'Published' %}published{% else %}draft{% endif %}">
+                            {{ schedule.get_publish_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if schedule.never_expire %}
+                            <span class="never-expire">Never Expire</span>
+                        {% else %}
+                            {{ schedule.playback_date|date:"Y-m-d"|default:"-" }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ schedule.playback_start|default:"-" }} - {{ schedule.playback_end|default:"-" }}
+                    </td>
+                    <td>
+                        {% for group in schedule.get_related_groups %}
+                            <span class="group-tag">{{ group.name }}</span>{% if not forloop.last %} {% endif %}
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </td>
+                    <td>{{ schedule.updated_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="no-data">No schedules found in recycle bin.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <div class="footer-left">
+            <div class="items-info" id="items-info">1 - {{ schedules.count }}/{{ schedules.count }}</div>
+            <select id="items-per-page" class="pagination-select">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+        <div class="pagination-controls">
+            <button class="pagination-nav" id="first-page" title="First page">«</button>
+            <button class="pagination-nav" id="prev-page" title="Previous page">‹</button>
+            <div class="page-numbers" id="page-numbers"></div>
+            <button class="pagination-nav" id="next-page" title="Next page">›</button>
+            <button class="pagination-nav" id="last-page" title="Last page">»</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.table-container {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    height: calc(87vh - 100px); 
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    flex-grow: 1; 
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    height: 100%;
+}
+
+.data-table thead {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.data-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: top;
+}
+
+.data-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.sortable-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.sort-icon {
+    font-size: 12px;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.published {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.draft {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.never-expire {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.group-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-right: 4px;
+}
+
+.no-data {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.table-footer {
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.items-info {
+    font-size: 14px;
+    color: #495057;
+    white-space: nowrap;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.pagination-nav {
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.pagination-nav:hover {
+    background: #e9ecef;
+}
+
+.pagination-nav:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 4px;
+}
+
+.page-number {
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.page-number.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.page-number:hover:not(.active) {
+    background: #e9ecef;
+}
+
+.pagination-select {
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 14px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const itemsPerPageSelect = document.getElementById('items-per-page');
+    const itemsInfo = document.getElementById('items-info');
+    const table = document.querySelector('.data-table');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr:not(.no-data)'));
+    const pageNumbersContainer = document.getElementById('page-numbers');
+    const firstPageBtn = document.getElementById('first-page');
+    const prevPageBtn = document.getElementById('prev-page');
+    const nextPageBtn = document.getElementById('next-page');
+    const lastPageBtn = document.getElementById('last-page');
+
+    let currentPage = 1;
+    let itemsPerPage = itemsPerPageSelect ? parseInt(itemsPerPageSelect.value) : 10;
+    let visiblePageRange = { start: 1, end: 10 };
+
+    function updatePagination() {
+        const totalItems = rows.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const startItem = (currentPage - 1) * itemsPerPage + 1;
+        const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+        
+        itemsInfo.textContent = `${startItem} - ${endItem}/${totalItems}`;
+        
+        if (currentPage > visiblePageRange.end) {
+            visiblePageRange.start = Math.min(currentPage - 5, totalPages - 9);
+            visiblePageRange.end = Math.min(visiblePageRange.start + 9, totalPages);
+        } else if (currentPage < visiblePageRange.start) {
+            visiblePageRange.end = Math.max(currentPage + 5, 10);
+            visiblePageRange.start = Math.max(visiblePageRange.end - 9, 1);
+        }
+        
+        visiblePageRange.start = Math.max(1, visiblePageRange.start);
+        visiblePageRange.end = Math.min(totalPages, visiblePageRange.end);
+        
+        if (totalPages <= 10) {
+            visiblePageRange.start = 1;
+            visiblePageRange.end = totalPages;
+        }
+        
+        pageNumbersContainer.innerHTML = '';
+        
+        if (visiblePageRange.start > 1) {
+            const firstPageBtn = createPageButton(1);
+            pageNumbersContainer.appendChild(firstPageBtn);
+            
+            if (visiblePageRange.start > 2) {
+                const ellipsis = document.createElement('span');
+                ellipsis.textContent = '...';
+                ellipsis.style.padding = '6px 10px';
+                pageNumbersContainer.appendChild(ellipsis);
+            }
+        }
+        
+        for (let i = visiblePageRange.start; i <= visiblePageRange.end; i++) {
+            const pageBtn = createPageButton(i);
+            pageNumbersContainer.appendChild(pageBtn);
+        }
+        
+        if (visiblePageRange.end < totalPages) {
+            if (visiblePageRange.end < totalPages - 1) {
+                const ellipsis = document.createElement('span');
+                ellipsis.textContent = '...';
+                ellipsis.style.padding = '6px 10px';
+                pageNumbersContainer.appendChild(ellipsis);
+            }
+            
+            const lastPageBtn = createPageButton(totalPages);
+            pageNumbersContainer.appendChild(lastPageBtn);
+        }
+        
+        firstPageBtn.disabled = currentPage === 1;
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages;
+        lastPageBtn.disabled = currentPage === totalPages;
+        
+        updateTable();
+    }
+
+    function createPageButton(pageNumber) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = 'page-number' + (pageNumber === currentPage ? ' active' : '');
+        pageBtn.textContent = pageNumber;
+        pageBtn.addEventListener('click', () => {
+            currentPage = pageNumber;
+            updatePagination();
+        });
+        return pageBtn;
+    }
+
+    function updateTable() {
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        
+        rows.forEach((row, index) => {
+            row.style.display = (index >= start && index < end) ? '' : 'none';
+        });
+    }
+
+    if (itemsPerPageSelect) {
+        itemsPerPageSelect.addEventListener('change', function() {
+            itemsPerPage = parseInt(this.value);
+            currentPage = 1;
+            visiblePageRange = { start: 1, end: 10 };
+            updatePagination();
+        });
+    }
+
+    firstPageBtn.addEventListener('click', () => {
+        currentPage = 1;
+        visiblePageRange = { start: 1, end: Math.min(10, Math.ceil(rows.length / itemsPerPage)) };
+        updatePagination();
+    });
+
+    prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            if (currentPage < visiblePageRange.start) {
+                visiblePageRange.start = Math.max(1, visiblePageRange.start - 1);
+                visiblePageRange.end = Math.max(10, visiblePageRange.end - 1);
+            }
+            updatePagination();
+        }
+    });
+
+    nextPageBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(rows.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            if (currentPage > visiblePageRange.end) {
+                visiblePageRange.start = Math.min(totalPages - 9, visiblePageRange.start + 1);
+                visiblePageRange.end = Math.min(totalPages, visiblePageRange.end + 1);
+            }
+            updatePagination();
+        }
+    });
+
+    lastPageBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(rows.length / itemsPerPage);
+        currentPage = totalPages;
+        visiblePageRange = { 
+            start: Math.max(1, totalPages - 9), 
+            end: totalPages 
+        };
+        updatePagination();
+    });
+
+    updatePagination();
+});
+</script>

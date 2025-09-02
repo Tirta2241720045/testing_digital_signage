@@ -1,0 +1,148 @@
+<form method="post" action="{% url 'login' %}" autocomplete="off" onsubmit="return handleSubmit(event)">
+    {% csrf_token %}
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        Invalid username or password
+    </div>
+    {% endif %}
+
+    <style>
+        input.form-control {
+            background-color: transparent !important;
+            color: white;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        input.form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        input.form-control:focus {
+            background-color: transparent !important;
+            color: white;
+            box-shadow: none;
+            outline: none;
+        }
+        input.form-control:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 9999s ease-in-out 0s;
+        }
+        input.form-control:-moz-autofill {
+            box-shadow: 0 0 0px 1000px transparent inset !important;
+            color: white !important;
+        }
+        .divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.2);
+            margin: 10px 0;
+        }
+        .custom-login-btn {
+            background-color: #4da6ff;
+            color: white;
+            border: 1px solid #4da6ff;
+            font-size: 0.95rem;
+            padding: 0.6rem;
+            width: 100%;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .custom-login-btn:hover {
+            background-color: white;
+            color: #4da6ff;
+            border-color: #4da6ff;
+        }
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15em;
+        }
+        .d-none { display: none !important; }
+        .offscreen-bait {
+            position: absolute !important;
+            left: -10000px !important;
+            top: auto !important;
+            width: 1px !important;
+            height: 1px !important;
+            overflow: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+    </style>
+
+    <div class="offscreen-bait" aria-hidden="true">
+        <input type="text" name="username" autocomplete="username" tabindex="-1">
+        <input type="password" name="password" autocomplete="current-password" tabindex="-1">
+    </div>
+
+    <div class="mb-3">
+        <input
+            type="text"
+            id="login_user"
+            name="login_user"
+            class="form-control"
+            placeholder="User ID"
+            required
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+        >
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="mb-3">
+        <input
+            type="password"
+            id="login_pass"
+            name="login_pass"
+            class="form-control"
+            placeholder="Password"
+            required
+            autocomplete="new-password"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+        >
+    </div>
+
+    <input type="hidden" name="username" id="real_username">
+    <input type="hidden" name="password" id="real_password">
+
+    <button type="submit" id="login-btn" class="custom-login-btn">
+        <span id="btn-text">Sign in</span>
+        <span id="btn-spinner" class="spinner-border spinner-border-sm text-white ms-2 d-none" role="status" aria-hidden="true"></span>
+    </button>
+
+    <script>
+        window.addEventListener('pageshow', function() {
+            const u = document.getElementById('login_user');
+            const p = document.getElementById('login_pass');
+            if (u && u.value) u.value = '';
+            if (p && p.value) p.value = '';
+        });
+
+        function showLoading() {
+            const btn = document.getElementById('login-btn');
+            const text = document.getElementById('btn-text');
+            const spinner = document.getElementById('btn-spinner');
+            btn.disabled = true;
+            text.textContent = 'Signing in';
+            spinner.classList.remove('d-none');
+        }
+
+        function handleSubmit(e) {
+            const u = document.getElementById('login_user').value;
+            const p = document.getElementById('login_pass').value;
+            document.getElementById('real_username').value = u;
+            document.getElementById('real_password').value = p;
+            showLoading();
+            return true;
+        }
+    </script>
+</form>

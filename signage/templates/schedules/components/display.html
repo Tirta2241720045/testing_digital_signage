@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Signage - {{ title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .default-view {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .default-view .content {
+            text-align: center;
+            max-width: 800px;
+            padding: 20px;
+            z-index: 2;
+        }
+        
+        .default-view h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
+        }
+        
+        .default-view p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .media-view {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            display: none;
+        }
+        
+        .media-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        .media-content {
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            object-position: center;
+        }
+        
+        .status-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .status-bar:hover {
+            opacity: 1;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            margin-right: 10px;
+            box-shadow: 0 0 10px #4CAF50;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px #4CAF50; }
+            50% { box-shadow: 0 0 20px #4CAF50; }
+            100% { box-shadow: 0 0 10px #4CAF50; }
+        }
+        
+        .clock {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .device-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            text-align: left;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .device-info:hover {
+            opacity: 1;
+        }
+        
+        .device-info h3 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .device-info p {
+            font-size: 0.9rem;
+            margin: 2px 0;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            z-index: 10;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+            opacity: 1;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .notification {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        .schedule-info {
+            position: absolute;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .schedule-info:hover {
+            opacity: 1;
+        }
+        
+        .schedule-info h3 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .schedule-info p {
+            font-size: 1rem;
+            margin: 2px 0;
+        }
+        
+        .no-content {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .no-content h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .slideshow {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .slide.active {
+            opacity: 0.3;
+        }
+        
+        .refresh-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff9800;
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .refresh-indicator.refreshing {
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+        
+        .refresh-indicator.paused {
+            background: #f44336;
+            opacity: 0.7;
+        }
+        
+        .schedule-status {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .schedule-status:hover {
+            opacity: 1;
+        }
+        
+        .schedule-status.active {
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .schedule-status.waiting {
+            border-left: 4px solid #ff9800;
+        }
+        
+        .mini-loading {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 12px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        
+        .mini-loading.show {
+            display: flex;
+        }
+        
+        .mini-loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #4CAF50;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="mini-loading" id="miniLoading">
+            <div class="mini-loading-spinner"></div>
+            <span>Updating...</span>
+        </div>
+        
+        <div class="default-view" id="defaultView">
+            <div class="slideshow">
+                <div class="slide"></div>
+                <div class="slide"></div>
+                <div class="slide"></div>
+            </div>
+            
+            <div class="content">
+                <h1>DIGITAL SIGNAGE SYSTEM</h1>
+                <p>Automatic full-screen display solution for presentations, information, and promotions</p>
+                
+                {% if not media_content %}
+                <div class="no-content">
+                    <h2>No Active Content</h2>
+                    <p>{% if next_schedule_info %}Next schedule: {{ next_schedule_info.name }} at {{ next_schedule_info.start_time }}{% else %}No scheduled content available{% endif %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="media-view" id="mediaView" style="display: none;">
+            <div class="media-container">
+            </div>
+        </div>
+        
+        <script id="backend-media-data" type="application/json">
+            {
+                "media_content": {{ media_content_json|safe }},
+                "schedule_info": {{ schedule_info_json|safe }},
+                "device": {
+                    "name": "{{ device.name|default:'' }}",
+                    "ip": "{{ ip_address|default:'' }}"
+                },
+                "group_info": {{ group_info_json|safe }},
+                "next_schedule_info": {{ next_schedule_info_json|safe }}
+            }
+        </script>
+        
+        {% if device %}
+        <div class="device-info">
+            <h3>Device Info</h3>
+            <p><strong>Name:</strong> {{ device.name }}</p>
+            <p><strong>IP:</strong> {{ ip_address }}</p>
+            {% if group_info %}
+            <p><strong>Group:</strong> {{ group_info.name }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="status-bar">
+            <div class="status-indicator"></div>
+            <div class="clock">00:00:00</div>
+            <div class="refresh-indicator" id="refreshIndicator"></div>
+        </div>
+        
+        <div class="schedule-status" id="scheduleStatus">
+            Schedule Status: Monitoring
+        </div>
+        
+        {% if schedule_info %}
+        <div class="schedule-info">
+            <h3>Active Schedule: {{ schedule_info.name }}</h3>
+            <p>{{ schedule_info.date }} | {{ schedule_info.start_time }} - {{ schedule_info.end_time }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="notification" id="notification">Fullscreen mode activated</div>
+        
+        <div class="controls">
+            <button class="btn" onclick="openFullscreen()"><i class="fas fa-play"></i> Play</button>
+            <button class="btn" onclick="exitToLogin()"><i class="fas fa-door-open"></i> Exit</button>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+        let scheduleCheckInterval = null;
+        let isRefreshing = false;
+        let hasMediaContent = false;
+        let currentScheduleEndTime = null;
+        let nextScheduleStartTime = null;
+        let isInFullscreen = false;
+        let autoRefreshEnabled = true;
+        let lastKnownSchedule = null;
+        let lastKnownMediaUrl = null;
+        let isInitialLoad = true;
+        
+        let currentScheduleData = null;
+        let isScheduleActive = false;
+        let videoStartTime = null;
+        let videoDuration = null;
+        let autoRefreshPaused = false;
+        let scheduleEndTime = null;
+        let refreshPausedUntil = null;
+        let scheduleStartTime = null;
+        let lastScheduleCheck = 0;
+        
+        let fullscreenState = {
+            wasInFullscreen: false,
+            shouldReturnToFullscreen: false,
+            isExitingIntentionally: false
+        };
+        
+        let contentUpdateSystem = {
+            isUpdating: false,
+            lastUpdateCheck: 0,
+            updateQueue: [],
+            currentContent: null
+        };
+        
+        function initializeVariables() {
+            const scheduleElement = document.querySelector('.schedule-info');
+            if (scheduleElement) {
+                const scheduleText = scheduleElement.textContent || '';
+                lastKnownSchedule = scheduleText.trim();
+            }
+            
+            const mediaView = document.getElementById('mediaView');
+            const mediaContent = mediaView ? mediaView.querySelector('.media-content') : null;
+            if (mediaContent) {
+                lastKnownMediaUrl = mediaContent.src || mediaContent.getAttribute('src') || '';
+            }
+            hasMediaContent = !!(mediaContent && lastKnownMediaUrl);
+        }
+        
+        function parseScheduleData() {
+            try {
+                const mediaDataScript = document.getElementById('backend-media-data');
+                if (mediaDataScript) {
+                    const data = JSON.parse(mediaDataScript.textContent);
+                    currentScheduleData = data.schedule_info;
+                    
+                    if (currentScheduleData) {
+                        const now = new Date();
+                        const today = now.toISOString().split('T')[0];
+                        
+                        const startDateTime = new Date(`${today}T${currentScheduleData.start_time}`);
+                        const endDateTime = new Date(`${today}T${currentScheduleData.end_time}`);
+                        
+                        scheduleStartTime = startDateTime;
+                        scheduleEndTime = endDateTime;
+                        
+                        const wasActive = isScheduleActive;
+                        isScheduleActive = now >= startDateTime && now <= endDateTime;
+                        
+                        if (wasActive !== isScheduleActive) {
+                            console.log(`Schedule status changed: ${wasActive ? 'active' : 'inactive'} -> ${isScheduleActive ? 'active' : 'inactive'}`);
+                            console.log(`Current time: ${now.toLocaleTimeString()}, Schedule: ${startDateTime.toLocaleTimeString()} - ${endDateTime.toLocaleTimeString()}`);
+                        }
+                        
+                        if (isScheduleActive && !autoRefreshPaused) {
+                            console.log(`Schedule is active until: ${endDateTime.toLocaleTimeString()}`);
+                            pauseAutoRefreshForSchedule(endDateTime);
+                        } else if (!isScheduleActive && autoRefreshPaused) {
+                            console.log('Schedule ended, but autorefresh still paused - resuming immediately');
+                            resumeAutoRefresh();
+                        }
+                        
+                        updateScheduleStatus();
+                    } else {
+                        scheduleStartTime = null;
+                        scheduleEndTime = null;
+                        
+                        if (isScheduleActive || autoRefreshPaused) {
+                            console.log('No schedule data found, resuming normal operation');
+                            isScheduleActive = false;
+                            if (autoRefreshPaused) {
+                                resumeAutoRefresh();
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing schedule data:', e);
+                currentScheduleData = null;
+                scheduleStartTime = null;
+                scheduleEndTime = null;
+                
+                if (isScheduleActive || autoRefreshPaused) {
+                    isScheduleActive = false;
+                    if (autoRefreshPaused) {
+                        resumeAutoRefresh();
+                    }
+                }
+            }
+        }
+        
+        function pauseAutoRefreshForSchedule(endTime) {
+            const now = new Date();
+            const remainingTime = endTime.getTime() - now.getTime();
+            
+            if (remainingTime > 0) {
+                autoRefreshPaused = true;
+                refreshPausedUntil = endTime;
+                
+                console.log(`Auto refresh paused for ${Math.round(remainingTime / 1000)} seconds until schedule ends at ${endTime.toLocaleTimeString()}`);
+                
+                const refreshIndicator = document.getElementById('refreshIndicator');
+                if (refreshIndicator) {
+                    refreshIndicator.classList.add('paused');
+                    refreshIndicator.title = `Auto refresh paused until ${endTime.toLocaleTimeString()}`;
+                }
+                
+                setTimeout(() => {
+                    resumeAutoRefresh();
+                }, remainingTime);
+            }
+        }
+        
+        function resumeAutoRefresh() {
+            autoRefreshPaused = false;
+            refreshPausedUntil = null;
+            isScheduleActive = false;
+            
+            console.log('Auto refresh resumed - schedule ended, checking for content updates');
+            
+            const refreshIndicator = document.getElementById('refreshIndicator');
+            if (refreshIndicator) {
+                refreshIndicator.classList.remove('paused');
+                refreshIndicator.title = '';
+            }
+            
+            updateScheduleStatus();
+            
+            if (!isRefreshing) {
+                console.log('Schedule ended - immediate content update while maintaining fullscreen');
+                updateContentWithoutReload();
+            }
+        }
+        
+        function updateScheduleStatus() {
+            const scheduleStatus = document.getElementById('scheduleStatus');
+            if (!scheduleStatus) return;
+            
+            if (isScheduleActive && currentScheduleData) {
+                scheduleStatus.textContent = `Active: ${currentScheduleData.name}`;
+                scheduleStatus.className = 'schedule-status active';
+            } else if (autoRefreshPaused) {
+                scheduleStatus.textContent = 'Schedule Running';
+                scheduleStatus.className = 'schedule-status active';
+            } else {
+                scheduleStatus.textContent = 'Monitoring';
+                scheduleStatus.className = 'schedule-status waiting';
+            }
+        }
+        
+        function trackVideoPlayback(videoElement) {
+            if (!videoElement) return;
+            
+            videoElement.addEventListener('loadedmetadata', function() {
+                videoDuration = videoElement.duration;
+                videoStartTime = Date.now();
+                console.log(`Video duration: ${videoDuration} seconds`);
+                
+                if (isScheduleActive && scheduleEndTime) {
+                    const scheduleRemainingTime = (scheduleEndTime.getTime() - Date.now()) / 1000;
+                    const effectiveDuration = Math.min(videoDuration, scheduleRemainingTime);
+                    console.log(`Using effective duration: ${effectiveDuration} seconds`);
+                }
+            });
+            
+            videoElement.addEventListener('play', function() {
+                videoStartTime = Date.now();
+                console.log('Video playback started');
+            });
+            
+            videoElement.addEventListener('ended', function() {
+                console.log('Video playback ended');
+                videoStartTime = null;
+                
+                if (!isScheduleActive) {
+                    setTimeout(() => {
+                        if (!isRefreshing) {
+                            updateContentWithoutReload();
+                        }
+                    }, 1000);
+                }
+            });
+        }
+        
+        function canAutoRefresh() {
+            const now = Date.now();
+            
+            if (autoRefreshPaused) {
+                console.log('Auto refresh blocked: paused for active schedule');
+                return false;
+            }
+            
+            if (isScheduleActive && scheduleEndTime && now < scheduleEndTime.getTime()) {
+                console.log('Auto refresh blocked: schedule still active');
+                return false;
+            }
+            
+            if (videoStartTime && videoDuration) {
+                const videoElapsed = (now - videoStartTime) / 1000;
+                if (videoElapsed < videoDuration - 2) {
+                    console.log(`Auto refresh blocked: video still playing (${Math.round(videoElapsed)}/${Math.round(videoDuration)}s)`);
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        async function updateContentWithoutReload() {
+            if (contentUpdateSystem.isUpdating) {
+                console.log('Content update already in progress');
+                return;
+            }
+            
+            contentUpdateSystem.isUpdating = true;
+            const refreshIndicator = document.getElementById('refreshIndicator');
+            const miniLoading = document.getElementById('miniLoading');
+            
+            try {
+                if (miniLoading) {
+                    miniLoading.classList.add('show');
+                }
+                
+                if (refreshIndicator && !autoRefreshPaused) {
+                    refreshIndicator.classList.add('refreshing');
+                }
+                
+                const response = await fetch(window.location.href, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.data) {
+                        await updatePageContent(data.data);
+                        console.log('Content updated successfully without page reload');
+                    } else {
+                        console.log('No new content data received');
+                    }
+                } else {
+                    console.error('Failed to fetch updates:', response.status);
+                }
+                
+            } catch (error) {
+                console.error('Content update error:', error);
+            } finally {
+                contentUpdateSystem.isUpdating = false;
+                
+                setTimeout(() => {
+                    if (refreshIndicator && !autoRefreshPaused) {
+                        refreshIndicator.classList.remove('refreshing');
+                    }
+                    if (miniLoading) {
+                        miniLoading.classList.remove('show');
+                    }
+                }, 1500);
+            }
+        }
+        
+        async function updatePageContent(newData) {
+            const defaultView = document.getElementById('defaultView');
+            const mediaView = document.getElementById('mediaView');
+            const mediaContainer = mediaView.querySelector('.media-container');
+            
+            const wasInFullscreen = isInFullscreen;
+            
+            const backendScript = document.getElementById('backend-media-data');
+            if (backendScript) {
+                backendScript.textContent = JSON.stringify(newData);
+            }
+            
+            if (newData.media_content) {
+                console.log('Updating media content:', newData.media_content.type);
+                
+                await setupMediaContent(newData.media_content, mediaContainer);
+                
+                if (defaultView) defaultView.style.display = 'none';
+                mediaView.style.display = 'block';
+                hasMediaContent = true;
+                lastKnownMediaUrl = newData.media_content.url;
+                
+            } else {
+                console.log('No media content, showing default view');
+                
+                mediaView.style.display = 'none';
+                if (defaultView) defaultView.style.display = 'flex';
+                hasMediaContent = false;
+                lastKnownMediaUrl = null;
+                
+                updateNoContentMessage(newData.next_schedule_info);
+            }
+            
+            updateScheduleInfoDisplay(newData.schedule_info);
+            
+            updateDeviceInfo(newData.device, newData.group_info);
+            
+            parseScheduleData();
+            
+            if (wasInFullscreen && !isInFullscreen) {
+                setTimeout(() => {
+                    openFullscreen();
+                }, 100);
+            }
+        }
+        
+        async function setupMediaContent(mediaContent, container) {
+            return new Promise((resolve) => {
+                let mediaElement = '';
+                
+                if (mediaContent.type === 'video') {
+                    mediaElement = `
+                        <video class="media-content" id="mediaPlayer" muted loop playsinline preload="auto">
+                            <source src="${mediaContent.url}" type="video/mp4">
+                            Your browser does not support video.
+                        </video>
+                    `;
+                } else if (mediaContent.type === 'image') {
+                    mediaElement = `
+                        <img class="media-content" src="${mediaContent.url}" alt="${mediaContent.name || 'Media Content'}" id="mediaImage">
+                    `;
+                }
+                
+                if (mediaElement && container) {
+                    container.innerHTML = mediaElement;
+                    
+                    if (mediaContent.type === 'video') {
+                        setTimeout(() => {
+                            const videoElement = document.getElementById('mediaPlayer');
+                            if (videoElement) {
+                                setupVideoEvents(videoElement);
+                                trackVideoPlayback(videoElement);
+                                forceVideoPlay(videoElement);
+                            }
+                            resolve();
+                        }, 100);
+                    } else {
+                        setTimeout(() => {
+                            const imageElement = document.getElementById('mediaImage');
+                            if (imageElement) {
+                                setupImageEvents(imageElement);
+                            }
+                            resolve();
+                        }, 100);
+                    }
+                } else {
+                    resolve();
+                }
+            });
+        }
+        
+        function updateNoContentMessage(nextScheduleInfo) {
+            const noContentDiv = document.querySelector('.no-content');
+            if (noContentDiv) {
+                const messageP = noContentDiv.querySelector('p');
+                if (messageP && nextScheduleInfo) {
+                    messageP.textContent = `Next schedule: ${nextScheduleInfo.name} at ${nextScheduleInfo.start_time}`;
+                } else if (messageP) {
+                    messageP.textContent = 'No scheduled content available';
+                }
+            }
+        }
+        
+        function updateScheduleInfoDisplay(scheduleInfo) {
+            let scheduleInfoDiv = document.querySelector('.schedule-info');
+            
+            if (scheduleInfo) {
+                if (!scheduleInfoDiv) {
+                    scheduleInfoDiv = document.createElement('div');
+                    scheduleInfoDiv.className = 'schedule-info';
+                    document.body.appendChild(scheduleInfoDiv);
+                }
+                
+                scheduleInfoDiv.innerHTML = `
+                    <h3>Active Schedule: ${scheduleInfo.name}</h3>
+                    <p>${scheduleInfo.date} | ${scheduleInfo.start_time} - ${scheduleInfo.end_time}</p>
+                `;
+                scheduleInfoDiv.style.display = 'block';
+                lastKnownSchedule = `Active Schedule: ${scheduleInfo.name}`;
+            } else if (scheduleInfoDiv) {
+                scheduleInfoDiv.style.display = 'none';
+                lastKnownSchedule = null;
+            }
+        }
+        
+        function updateDeviceInfo(deviceInfo, groupInfo) {
+            const deviceInfoDiv = document.querySelector('.device-info');
+            if (deviceInfoDiv && deviceInfo) {
+                const nameP = deviceInfoDiv.querySelector('p:first-of-type');
+                const ipP = deviceInfoDiv.querySelector('p:nth-of-type(2)');
+                const groupP = deviceInfoDiv.querySelector('p:nth-of-type(3)');
+                
+                if (nameP) nameP.innerHTML = `<strong>Name:</strong> ${deviceInfo.name}`;
+                if (ipP) ipP.innerHTML = `<strong>IP:</strong> ${deviceInfo.ip}`;
+                
+                if (groupInfo && groupP) {
+                    groupP.innerHTML = `<strong>Group:</strong> ${groupInfo.name}`;
+                } else if (groupP) {
+                    groupP.style.display = 'none';
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeVariables();
+            parseScheduleData();
+            setupInitialContent();
+            
+            checkFullscreenRecovery();
+            
+            if (isInitialLoad) {
+                setTimeout(openFullscreen, 1000);
+            }
+            
+            startIntelligentAutoRefresh();
+            
+            setupMediaHandling();
+            
+            startScheduleMonitoring();
+            
+            isInitialLoad = false;
+        });
+        
+        function checkFullscreenRecovery() {
+            try {
+                const shouldRecover = sessionStorage.getItem('signage_fullscreen_recovery');
+                if (shouldRecover === 'true') {
+                    sessionStorage.removeItem('signage_fullscreen_recovery');
+                    setTimeout(openFullscreen, 500);
+                    fullscreenState.shouldReturnToFullscreen = true;
+                }
+            } catch (e) {
+                fullscreenState.shouldReturnToFullscreen = false;
+            }
+        }
+        
+        function setupInitialContent() {
+            const defaultView = document.getElementById('defaultView');
+            const mediaView = document.getElementById('mediaView');
+            const mediaContainer = mediaView.querySelector('.media-container');
+            
+            try {
+                const mediaDataScript = document.getElementById('backend-media-data');
+                if (mediaDataScript) {
+                    const data = JSON.parse(mediaDataScript.textContent);
+                    
+                    if (data.media_content) {
+                        setupMediaContent(data.media_content, mediaContainer);
+                        mediaView.style.display = 'block';
+                        if (defaultView) defaultView.style.display = 'none';
+                        hasMediaContent = true;
+                        lastKnownMediaUrl = data.media_content.url;
+                    } else {
+                        if (defaultView) defaultView.style.display = 'flex';
+                        mediaView.style.display = 'none';
+                        hasMediaContent = false;
+                        lastKnownMediaUrl = null;
+                    }
+                    
+                    if (data.schedule_info) {
+                        lastKnownSchedule = `Active Schedule: ${data.schedule_info.name}`;
+                    }
+                }
+            } catch (e) {
+                console.log('No backend media data found, using default');
+                if (defaultView) defaultView.style.display = 'flex';
+                mediaView.style.display = 'none';
+                hasMediaContent = false;
+            }
+        }
+        
+        function setupMediaContent(mediaContent, container) {
+            let mediaElement = '';
+            
+            if (mediaContent.type === 'video') {
+                mediaElement = `
+                    <video class="media-content" id="mediaPlayer" muted loop playsinline preload="auto">
+                        <source src="${mediaContent.url}" type="video/mp4">
+                        Your browser does not support video.
+                    </video>
+                `;
+            } else if (mediaContent.type === 'image') {
+                mediaElement = `
+                    <img class="media-content" src="${mediaContent.url}" alt="${mediaContent.name || 'Media Content'}" id="mediaImage">
+                `;
+            }
+            
+            if (mediaElement && container) {
+                container.innerHTML = mediaElement;
+                
+                if (mediaContent.type === 'video') {
+                    setTimeout(() => {
+                        const videoElement = document.getElementById('mediaPlayer');
+                        if (videoElement) {
+                            trackVideoPlayback(videoElement);
+                            forceVideoPlay(videoElement);
+                        }
+                    }, 100);
+                }
+            }
+        }
+        
+        function forceVideoPlay(videoElement) {
+            if (!videoElement) return;
+            
+            console.log('Attempting to play video...');
+            
+            videoElement.muted = true;
+            videoElement.loop = true;
+            videoElement.autoplay = true;
+            
+            let playAttempt = 0;
+            
+            function attemptPlay() {
+                playAttempt++;
+                console.log(`Video play attempt ${playAttempt}`);
+                
+                const playPromise = videoElement.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            console.log('Video started playing successfully');
+                            videoStartTime = Date.now();
+                        })
+                        .catch((error) => {
+                            console.log(`Play attempt ${playAttempt} failed:`, error);
+                            
+                            if (playAttempt < 5) {
+                                setTimeout(attemptPlay, 500);
+                            } else {
+                                console.error('All video play attempts failed');
+                            }
+                        });
+                } else {
+                    if (playAttempt < 3) {
+                        setTimeout(attemptPlay, 500);
+                    }
+                }
+            }
+            
+            attemptPlay();
+            
+            videoElement.addEventListener('loadeddata', function() {
+                if (videoElement.paused) {
+                    attemptPlay();
+                }
+            });
+            
+            videoElement.addEventListener('canplaythrough', function() {
+                if (videoElement.paused) {
+                    attemptPlay();
+                }
+            });
+        }
+        
+        function startIntelligentAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            autoRefreshInterval = setInterval(function() {
+                if (autoRefreshEnabled && !isRefreshing && canAutoRefresh()) {
+                    updateContentWithoutReload();
+                } else if (autoRefreshEnabled) {
+                    console.log('Auto refresh skipped - waiting for appropriate time');
+                }
+            }, 180000);
+            
+            console.log('Intelligent auto refresh started (3 minute interval with dynamic content updates)');
+        }
+        
+        function checkScheduleTriggers() {
+            if (!scheduleStartTime && !scheduleEndTime) return;
+            
+            const now = new Date();
+            const currentTime = now.getTime();
+            
+            if (scheduleStartTime && !isScheduleActive) {
+                const timeToStart = scheduleStartTime.getTime() - currentTime;
+                if (timeToStart <= 5000 && timeToStart > -5000) { 
+                    console.log(`Schedule starting soon (${Math.round(timeToStart/1000)}s), triggering immediate update`);
+                    if (!isRefreshing) {
+                        updateContentWithoutReload();
+                    }
+                    return true;
+                }
+            }
+            
+            if (scheduleEndTime && isScheduleActive) {
+                const timeToEnd = scheduleEndTime.getTime() - currentTime;
+                if (timeToEnd <= 5000 && timeToEnd > -5000) { 
+                    console.log(`Schedule ending soon (${Math.round(timeToEnd/1000)}s), triggering immediate update`);
+                    if (!isRefreshing) {
+                        updateContentWithoutReload();
+                    }
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        async function checkForUpdates() {
+            console.log('Legacy checkForUpdates called, redirecting to updateContentWithoutReload');
+            await updateContentWithoutReload();
+        }
+        
+        function startScheduleMonitoring() {
+            if (scheduleCheckInterval) {
+                clearInterval(scheduleCheckInterval);
+            }
+
+            scheduleCheckInterval = setInterval(() => {
+                const previousScheduleActive = isScheduleActive;
+                parseScheduleData(); 
+
+                if (checkScheduleTriggers()) {
+                    return; 
+                }
+                
+                if (previousScheduleActive && !isScheduleActive && !autoRefreshPaused) {
+                    console.log('Schedule transition detected: active -> inactive, updating content');
+                    if (!isRefreshing) {
+                        updateContentWithoutReload();
+                    }
+                    return;
+                }
+                
+                if (autoRefreshEnabled && !isRefreshing && canAutoRefresh()) {
+                    const now = Date.now();
+                    const timeSinceLastCheck = now - lastScheduleCheck;
+                    
+                    if (timeSinceLastCheck >= 30000) { 
+                        lastScheduleCheck = now;
+                        updateContentWithoutReload();
+                    }
+                }
+            }, 10000); 
+        }
+        
+        function setupMediaHandling() {
+            const videoElement = document.getElementById('mediaPlayer');
+            const imageElement = document.getElementById('mediaImage');
+            
+            if (videoElement) {
+                setupVideoEvents(videoElement);
+                trackVideoPlayback(videoElement);
+            }
+            
+            if (imageElement) {
+                setupImageEvents(imageElement);
+            }
+        }
+        
+        function setupVideoEvents(videoElement) {
+            videoElement.addEventListener('error', function(e) {
+                console.error('Video error:', e);
+            });
+            
+            videoElement.addEventListener('loadstart', function() {
+                console.log('Video loading started');
+            });
+            
+            videoElement.addEventListener('loadedmetadata', function() {
+                console.log('Video metadata loaded');
+                forceVideoPlay(videoElement);
+            });
+            
+            videoElement.addEventListener('loadeddata', function() {
+                console.log('Video data loaded');
+                forceVideoPlay(videoElement);
+            });
+            
+            videoElement.addEventListener('canplay', function() {
+                console.log('Video can play');
+                forceVideoPlay(videoElement);
+            });
+            
+            videoElement.addEventListener('ended', function() {
+                console.log('Video ended, should loop');
+            });
+            
+            forceVideoPlay(videoElement);
+        }
+        
+        function setupImageEvents(imageElement) {
+            imageElement.addEventListener('error', function(e) {
+                console.error('Image error:', e);
+            });
+            
+            imageElement.addEventListener('load', function() {
+                console.log('Image loaded successfully');
+            });
+        }
+        
+        function openFullscreen() {
+            const elem = document.documentElement;
+            
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(console.error);
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+            
+            isInFullscreen = true;
+            fullscreenState.wasInFullscreen = true;
+            fullscreenState.isExitingIntentionally = false;
+            
+            try {
+                sessionStorage.setItem('signage_fullscreen_active', 'true');
+            } catch (e) {
+            }
+            
+            setTimeout(() => {
+                const videoElement = document.getElementById('mediaPlayer');
+                if (videoElement) {
+                    forceVideoPlay(videoElement);
+                }
+            }, 500);
+        }
+        
+        function exitToLogin() {
+            fullscreenState.isExitingIntentionally = true;
+            
+            try {
+                sessionStorage.removeItem('signage_fullscreen_recovery');
+                sessionStorage.removeItem('signage_fullscreen_active');
+            } catch (e) {
+            }
+            
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            
+            setTimeout(function() {
+                window.location.href = '/login/';
+            }, 500);
+        }
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            const fullscreenElement = document.fullscreenElement || 
+                                    document.webkitFullscreenElement || 
+                                    document.mozFullScreenElement || 
+                                    document.msFullscreenElement;
+            
+            const wasInFullscreen = isInFullscreen;
+            isInFullscreen = !!fullscreenElement;
+            
+            try {
+                if (isInFullscreen) {
+                    sessionStorage.setItem('signage_fullscreen_active', 'true');
+                } else if (!fullscreenState.isExitingIntentionally) {
+                    sessionStorage.removeItem('signage_fullscreen_active');
+                }
+            } catch (e) {
+            }
+            
+            if (!fullscreenElement && wasInFullscreen && !fullscreenState.isExitingIntentionally) {
+                console.log('Accidentally exited fullscreen, will re-enter in 8 seconds');
+                setTimeout(() => {
+                    if (!isInFullscreen && !fullscreenState.isExitingIntentionally) {
+                        console.log('Re-entering fullscreen after accidental exit');
+                        openFullscreen();
+                    }
+                }, 8000);
+            }
+            
+            if (isInFullscreen) {
+                setTimeout(() => {
+                    const videoElement = document.getElementById('mediaPlayer');
+                    if (videoElement) {
+                        forceVideoPlay(videoElement);
+                    }
+                }, 300);
+            }
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                fullscreenState.isExitingIntentionally = true;
+                exitToLogin();
+            }
+        });
+        
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            if (notification) {
+                notification.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(function() {
+                    notification.classList.remove('show');
+                }, 2000);
+            }
+        }
+        
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            const clockElement = document.querySelector('.clock');
+            if (clockElement) {
+                clockElement.textContent = timeStr;
+            }
+        }
+        
+        setInterval(updateClock, 1000);
+        updateClock();
+        
+        let currentSlide = 0;
+        
+        function changeSlide() {
+            const slides = document.querySelectorAll('.slide');
+            if (slides.length === 0) return;
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+        
+        setInterval(changeSlide, 5000);
+        
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('Page became visible');
+                
+                try {
+                    const shouldBeFullscreen = sessionStorage.getItem('signage_fullscreen_active');
+                    if (shouldBeFullscreen === 'true' && !isInFullscreen) {
+                        setTimeout(() => {
+                            console.log('Restoring fullscreen after page visibility change');
+                            openFullscreen();
+                        }, 1000);
+                    }
+                } catch (e) {
+                }
+                
+                const videoElement = document.getElementById('mediaPlayer');
+                if (videoElement) {
+                    setTimeout(() => forceVideoPlay(videoElement), 200);
+                }
+            }
+        });
+        
+        document.addEventListener('click', function() {
+            const videoElement = document.getElementById('mediaPlayer');
+            if (videoElement && videoElement.paused) {
+                forceVideoPlay(videoElement);
+            }
+        });
+        
+        document.addEventListener('touchstart', function() {
+            const videoElement = document.getElementById('mediaPlayer');
+            if (videoElement && videoElement.paused) {
+                forceVideoPlay(videoElement);
+            }
+        });
+        
+        window.addEventListener('focus', function() {
+            console.log('Window gained focus');
+            
+            try {
+                const shouldBeFullscreen = sessionStorage.getItem('signage_fullscreen_active');
+                if (shouldBeFullscreen === 'true' && !isInFullscreen) {
+                    setTimeout(() => {
+                        console.log('Restoring fullscreen after window focus');
+                        openFullscreen();
+                    }, 500);
+                }
+            } catch (e) {
+            }
+            
+            const videoElement = document.getElementById('mediaPlayer');
+            if (videoElement && videoElement.paused) {
+                setTimeout(() => forceVideoPlay(videoElement), 100);
+            }
+        });
+        
+        window.addEventListener('load', function() {
+            console.log('Page fully loaded');
+            
+            try {
+                const shouldBeFullscreen = sessionStorage.getItem('signage_fullscreen_active');
+                if (shouldBeFullscreen === 'true' && !isInFullscreen) {
+                    setTimeout(() => {
+                        console.log('Auto-entering fullscreen on page load');
+                        openFullscreen();
+                    }, 1000);
+                }
+            } catch (e) {
+            }
+        });
+        
+        window.addEventListener('beforeunload', function() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            if (scheduleCheckInterval) {
+                clearInterval(scheduleCheckInterval);
+            }
+        });
+        
+        window.forceRefresh = function() {
+            console.log('Manual content update triggered (no page reload)');
+            updateContentWithoutReload();
+        };
+        
+        window.toggleAutoRefresh = function() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            console.log('Auto refresh:', autoRefreshEnabled ? 'enabled' : 'disabled');
+        };
+        
+        window.playVideo = function() {
+            const videoElement = document.getElementById('mediaPlayer');
+            if (videoElement) {
+                forceVideoPlay(videoElement);
+            }
+        };
+        
+        window.checkRefreshStatus = function() {
+            console.log('Refresh Status:', {
+                autoRefreshEnabled,
+                autoRefreshPaused,
+                isScheduleActive,
+                isRefreshing,
+                canRefresh: canAutoRefresh(),
+                scheduleEndTime: scheduleEndTime ? scheduleEndTime.toLocaleTimeString() : null,
+                videoDuration,
+                videoStartTime: videoStartTime ? new Date(videoStartTime).toLocaleTimeString() : null,
+                isInFullscreen,
+                contentUpdateSystem: contentUpdateSystem
+            });
+        };
+        
+        window.testFullscreenUpdate = function() {
+            console.log('Testing fullscreen content update...');
+            if (isInFullscreen) {
+                updateContentWithoutReload();
+            } else {
+                console.log('Not in fullscreen mode');
+            }
+        };
+        
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                e.preventDefault(); 
+                console.log('Manual refresh key pressed, using dynamic update instead');
+                updateContentWithoutReload();
+            }
+        });
+        
+    </script>
+</body>
+</html>

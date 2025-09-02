@@ -1,0 +1,206 @@
+<nav class="folder-navbar" style="height: 81px; display: flex; align-items: flex-end; padding: 0 3rem; border-bottom: 1px solid #ddd; background: #fafafa; gap: 2px; justify-content: space-between;">
+  <div style="display: flex;">
+    <div class="folder-tab {% if request.path == '/dashboard/' %}active{% endif %}">
+      <a href="/dashboard/" class="folder-link">
+        {% if request.path == '/dashboard/' %}
+          <span class="folder-initial">D</span>
+          <span class="folder-label">Dashboard</span>
+        {% else %}
+          <span class="folder-initial-only">D</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="folder-tab {% if '/content/' in request.path %}active{% endif %}">
+      <a href="/content/" class="folder-link">
+        {% if '/content/' in request.path %}
+          <span class="folder-initial">C</span>
+          <span class="folder-label">Content</span>
+        {% else %}
+          <span class="folder-initial-only">C</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="folder-tab {% if '/playlist/' in request.path %}active{% endif %}">
+      <a href="/playlist/" class="folder-link">
+        {% if '/playlist/' in request.path %}
+          <span class="folder-initial">P</span>
+          <span class="folder-label">Playlist</span>
+        {% else %}
+          <span class="folder-initial-only">P</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="folder-tab {% if '/schedules/' in request.path %}active{% endif %}">
+      <a href="/schedules/" class="folder-link">
+        {% if '/schedules/' in request.path %}
+          <span class="folder-initial">S</span>
+          <span class="folder-label">Schedules</span>
+        {% else %}
+          <span class="folder-initial-only">S</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="folder-tab {% if '/device/' in request.path %}active{% endif %}">
+      <a href="/device/" class="folder-link">
+        {% if '/device/' in request.path %}
+          <span class="folder-initial">D</span>
+          <span class="folder-label">Device</span>
+        {% else %}
+          <span class="folder-initial-only">D</span>
+        {% endif %}
+      </a>
+    </div>
+  </div>
+
+  {% if request.path == '/' or request.path == '/content/' or request.path == '/playlist/' or request.path == '/schedules/' or request.path == '/device/' or request.path == '/dashboard/' %}
+    <div class="d-flex align-items-end" style="height: 80px; padding-bottom: 2px; margin-right: -30px;">
+      {% include 'auth/components/logout.html' %}
+    </div>
+  {% endif %}
+</nav>
+
+<nav style="background: #f5f5f5; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;"> 
+  <div style=" padding: 0.75rem 3rem; display: flex; align-items: center; gap: 1rem;">
+    {% if request.path == '/content/' %}
+      {% include 'content/components/upload.html' %}
+      {% include 'content/components/export.html' %}
+    {% elif request.path == '/recycle-bin/' %}
+      {% include 'content/components/delete.html' %}
+      {% include 'content/components/export.html' %}
+    {% endif %}
+
+    {% if request.path == '/playlist/' %}
+      {% include 'playlist/components/upload.html' %}
+      {% include 'playlist/components/export.html' %}
+    {% elif request.path == '/recycle-bin-playlist/' %}
+      {% include 'playlist/components/delete.html' %}
+      {% include 'playlist/components/export.html' %}
+    {% endif %}
+
+    {% if request.path == '/device/' %}
+      {% include 'device/components/export.html' %}
+      {% include 'device/components/group_by.html' %}
+    {% endif %}
+
+    {% if request.path == '/schedules/' %}
+      {% include 'schedules/components/upload.html' %}
+
+    {% elif request.path == '/recycle-bin-schedules/' %}
+      {% include 'schedules/components/recycle/delete.html' %}
+      {% include 'schedules/components/recycle/export.html' %}
+    {% endif %}
+  </div>
+
+  <div style=" padding: 0.75rem 1rem; display: flex; align-items: center; gap: 1rem;">
+    {% if request.path == '/content/' or request.path == '/recycle-bin/' %}
+      {% include 'content/components/search.html' %}
+      {% include 'content/components/toggle_button.html' %}
+    {% endif %}
+
+    {% if request.path == '/playlist/' or request.path == '/recycle-bin-playlist/' %}
+      {% include 'playlist/components/search.html' %}
+      {% include 'playlist/components/toggle_button.html' %}
+    {% endif %}
+
+    {% if request.path == '/device/' %}
+      {% include 'device/components/search.html' %}
+    {% endif %}
+
+    {% if request.path == '/schedules/' %}
+      {% include 'schedules/components/recycle/datetime.html' %}
+    {% endif %}
+
+    {% if request.path == '/recycle-bin-schedules/' %}
+      {% include 'schedules/components/recycle/filter.html' %}
+      {% include 'schedules/components/recycle/search.html' %}
+    {% endif %}
+  </div>
+</nav>
+
+<style>
+  .folder-navbar {
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+
+  .folder-tab {
+    height: 40px;
+    background: #e8e8e8;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 0.5rem;
+    margin-right: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    transition: all 0.3s ease;
+    z-index: 1;
+  }
+
+  .folder-tab.active {
+    height: 40px;
+    background: #fff;
+    border-color: #bbb;
+    z-index: 2;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+  }
+
+  .folder-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .folder-initial {
+    width: 22px;
+    height: 22px;
+    background: #34495e;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    margin-right: 8px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+
+  .folder-initial-only {
+    width: 24px;
+    height: 24px;
+    background: #7f8c8d;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .folder-tab:not(.active):hover {
+    background: #e0e0e0;
+    transform: translateY(-1px);
+  }
+
+  .folder-tab:not(.active):hover .folder-initial-only {
+    background: #5a6c7d;
+    transform: scale(1.05);
+  }
+
+  .search-container,
+  .export-form,
+  .upload-button,
+  .toggle-button-container {
+    margin: 0;
+  }
+</style>

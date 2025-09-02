@@ -1,0 +1,475 @@
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+    {% for device in devices %}
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0 overflow-hidden 
+            {% if device.group %}
+                group-{{ device.group.name|slugify }}
+            {% else %}
+                group-default
+            {% endif %}">
+            
+            <div class="position-absolute end-0 top-0 m-2">
+                <span class="badge rounded-pill bg-white text-dark shadow-sm">
+                    <i class="fas fa-circle me-1 {% if device.is_online %}text-success{% else %}text-danger{% endif %}"></i>
+                    {% if device.is_online %}Online{% else %}Offline{% endif %}
+                </span>
+            </div>
+            
+            <div class="device-visual-container position-relative">
+                <div class="device-status-light position-absolute start-0 top-0 m-3">
+                    <div class="pulse-animation {% if device.is_online %}bg-success{% else %}bg-secondary{% endif %}"></div>
+                </div>
+                <div class="text-center p-4 device-image-container">
+                    <img src="/media/assets/device.png" alt="Device" class="img-fluid device-image">
+                    <div class="device-hover-info">
+                        <div class="info-item"><strong>IP:</strong> {{ device.ip_address }}</div>
+                        <div class="info-item"><strong>Resolution:</strong> {{ device.resolution|default:"N/A" }}</div>
+                        <div class="info-item"><strong>Last Updated:</strong> {{ device.last_updated|date:"Y-m-d H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body pt-2 pb-3 position-relative">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0 text-truncate">{{ device.name|default:"Unnamed Device" }}</h5>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center text-muted small">
+                        <i class="fas fa-desktop me-2"></i>
+                        <span class="text-truncate">{{ device.resolution|default:"Resolution N/A" }}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center text-muted small">
+                        <i class="far fa-clock me-1"></i>
+                        {{ device.last_updated|timesince }} ago
+                    </div>
+                </div>
+                
+                <div class="connection-status mb-3">
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar 
+                            {% if device.is_online %}
+                                bg-success" style="width: 100%"
+                            {% else %}
+                                bg-danger" style="width: 30%"
+                            {% endif %}
+                            role="progressbar">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="group-selection mt-3 pt-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center group-select-header" 
+                         data-device-id="{{ device.id }}"
+                         style="cursor: pointer;">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-layer-group me-2 text-muted"></i>
+                            <span class="group-select-text text-truncate">
+                                {% if device.group %}
+                                    {{ device.group.name }}
+                                {% else %}
+                                    No Group
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="dropdown-arrow bg-light rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 24px; height: 24px;">
+                            <i class="fas fa-chevron-down text-muted" style="font-size: 0.7rem;"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="group-options-container mt-2" style="display: none; max-height: 200px; overflow-y: auto;">
+                        <form id="groupForm-{{ device.id }}" method="post" action="{% url 'device_update' device.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="group" value="">
+                            
+                            <div class="list-group list-group-flush border-0">
+                                {% for group in groups %}
+                                    <button type="submit" 
+                                            name="group" 
+                                            value="{{ group.id }}" 
+                                            class="list-group-item list-group-item-action border-0 py-2 px-3 d-flex align-items-center 
+                                                   {% if device.group.id == group.id %}active{% endif %}">
+                                        <span class="group-color-indicator me-2" 
+                                              {% if group.color %}style="background-color: {{ group.color }}"{% endif %}></span>
+                                        {{ group.name }}
+                                        {% if device.group.id == group.id %}
+                                            <i class="fas fa-check ms-auto text-success"></i>
+                                        {% endif %}
+                                    </button>
+                                {% endfor %}
+                                <button type="submit" 
+                                        name="group" 
+                                        value="" 
+                                        class="list-group-item list-group-item-action border-0 py-2 px-3 d-flex align-items-center text-danger 
+                                               {% if not device.group %}active{% endif %}">
+                                    <i class="fas fa-times-circle me-2"></i>
+                                    No Group
+                                    {% if not device.group %}
+                                        <i class="fas fa-check ms-auto text-success"></i>
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-state text-center py-5">
+            <div class="empty-state-icon mb-4">
+                <i class="fas fa-server text-muted" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="text-muted mb-3">No Devices Found</h5>
+            <p class="text-muted mb-4">Get started by adding your first monitoring device</p>
+            <button class="btn btn-primary px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#addDeviceModal">
+                <i class="fas fa-plus me-2"></i> Add Device
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="addDeviceModal" tabindex="-1" aria-labelledby="addDeviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addDeviceModalLabel">How to Add a Device</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3">
+                            <i class="fas fa-laptop fa-lg"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-2">Simple Device Registration</h6>
+                        <p class="mb-0 text-muted">Just access this website from any device you want to monitor, and it will automatically appear in your device list.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3">
+                            <i class="fas fa-object-group fa-lg"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-2">Organize with Groups</h6>
+                        <p class="mb-0 text-muted">After registration, you can assign devices to groups for better organization. Just select a group from the dropdown menu on each device card.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                <a href="/media/assets/documents/device_tutorials.pdf" download class="btn btn-primary rounded-pill px-4">View Documentation</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-color: #4e73df;
+    --success-color: #1cc88a;
+    --danger-color: #e74a3b;
+    --warning-color: #f6c23e;
+    --info-color: #36b9cc;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+    transition: all 0.3s ease;
+    border-radius: 0.75rem;
+    border: none;
+    overflow: hidden;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+}
+
+.card.expanded {
+    min-height: 400px;
+    transition: min-height 0.3s ease;
+}
+
+.group-ballroom-1 { background: linear-gradient(135deg, rgba(224, 247, 250, 0.7) 0%, rgba(178, 235, 242, 0.7) 100%); }
+.group-ballroom-2 { background: linear-gradient(135deg, rgba(227, 242, 253, 0.7) 0%, rgba(187, 222, 251, 0.7) 100%); }
+.group-ballroom-3 { background: linear-gradient(135deg, rgba(232, 234, 246, 0.7) 0%, rgba(197, 202, 233, 0.7) 100%); }
+.group-ivory-1 { background: linear-gradient(135deg, rgba(255, 248, 225, 0.7) 0%, rgba(255, 236, 179, 0.7) 100%); }
+.group-ivory-2 { background: linear-gradient(135deg, rgba(243, 229, 245, 0.7) 0%, rgba(225, 190, 231, 0.7) 100%); }
+.group-ivory-3 { background: linear-gradient(135deg, rgba(241, 248, 233, 0.7) 0%, rgba(220, 237, 200, 0.7) 100%); }
+.group-ivory-4 { background: linear-gradient(135deg, rgba(232, 245, 233, 0.7) 0%, rgba(200, 230, 201, 0.7) 100%); }
+.group-ivory-5 { background: linear-gradient(135deg, rgba(249, 251, 231, 0.7) 0%, rgba(240, 244, 195, 0.7) 100%); }
+.group-ivory-6 { background: linear-gradient(135deg, rgba(255, 253, 231, 0.7) 0%, rgba(255, 249, 196, 0.7) 100%); }
+.group-lobby { background: linear-gradient(135deg, rgba(239, 235, 233, 0.7) 0%, rgba(215, 204, 200, 0.7) 100%); }
+.group-default { background: linear-gradient(135deg, rgba(245, 245, 245, 0.7) 0%, rgba(224, 224, 224, 0.7) 100%); }
+
+.device-visual-container {
+    background: linear-gradient(135deg, #f8f9fc 0%, #e9ecef 100%);
+    height: 160px;
+    overflow: hidden;
+    position: relative;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.device-image-container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.device-image {
+    height: 70%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.device-hover-info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+}
+
+.device-image-container:hover .device-hover-info {
+    opacity: 1;
+}
+
+.device-image-container:hover .device-image {
+    opacity: 0.2;
+    transform: scale(0.9);
+}
+
+.info-item {
+    margin: 5px 0;
+    font-size: 0.85rem;
+    color: #5a5c69;
+    display: flex;
+    justify-content: space-between;
+}
+
+.info-item strong {
+    color: #4e73df;
+    margin-right: 5px;
+}
+
+.pulse-animation {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    z-index: 3;
+    position: relative;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+.group-select-header {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.35rem;
+    transition: all 0.2s;
+}
+
+.group-select-header:hover {
+    background-color: #f8f9fc;
+}
+
+.dropdown-arrow {
+    transition: transform 0.3s ease;
+}
+
+.group-select-header.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.group-options-container {
+    transition: all 0.3s ease;
+    border-radius: 0.5rem;
+    background-color: white;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.group-options-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.group-options-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.group-options-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.group-options-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.list-group-item {
+    font-size: 0.85rem;
+    color: #5a5c69;
+    transition: all 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fc;
+    color: #4e73df;
+}
+
+.list-group-item.active {
+    background-color: #f8f9fc;
+    color: #4e73df;
+    font-weight: 600;
+}
+
+.group-color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    background-color: #6c757d;
+}
+
+.empty-state {
+    background-color: #f8f9fc;
+    border-radius: 0.75rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.empty-state-icon {
+    opacity: 0.5;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+.progress {
+    border-radius: 100px;
+    background-color: rgba(0, 0, 0, 0.05);
+    height: 6px;
+}
+
+.progress-bar {
+    border-radius: 100px;
+}
+
+.badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.modal-content {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: none;
+    padding: 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 1rem 1.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .device-visual-container {
+        height: 200px;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    .card.expanded {
+        min-height: 700px;
+    }
+}
+</style>
+
+<script>
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+})
+
+document.querySelectorAll('.group-select-header').forEach(header => {
+    header.addEventListener('click', function() {
+        const deviceId = this.getAttribute('data-device-id');
+        const card = this.closest('.card');
+        const optionsContainer = this.nextElementSibling;
+        const arrow = this.querySelector('.dropdown-arrow');
+        
+        this.classList.toggle('active');
+        
+        if (optionsContainer.style.display === 'block') {
+            optionsContainer.style.display = 'none';
+            card.classList.remove('expanded');
+        } else {
+            optionsContainer.style.display = 'block';
+            card.classList.add('expanded');
+        }
+    });
+});
+
+document.querySelectorAll('.group-options-container .list-group-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const form = this.closest('form');
+        form.querySelector('input[name="group"]').value = this.value;
+        form.submit();
+    });
+});
+
+document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+    });
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = '';
+    });
+});
+</script>

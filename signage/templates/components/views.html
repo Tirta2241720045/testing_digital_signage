@@ -1,0 +1,1148 @@
+<div class="dashboard-container">
+
+    <div class="dashboard-main-layout">
+        <div class="left-new-card">
+            <div class="dashboard-card realtime-clock-card">
+                <div class="clock-content">
+                    <div class="clock-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="clock-details">
+                        <div class="current-time" id="current-time">00:00:00</div>
+                        <div class="current-date" id="current-date">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="compact-cards-row">
+                <a href="/content/" class="summary-card-compact card-link">
+                    <div class="card-icon" style="background-color: #e3f2fd;">
+                        <i class="fas fa-film" style="color: #1976d2;"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Content Library</h3>
+                        <p class="stat-number">{{ total_content }}</p>
+                        <div class="card-subtext">
+                            <span class="badge active">{{ content_active }} Active</span>
+                            <span class="badge expired">{{ content_expired }} Expired</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="/playlist/" class="summary-card-compact card-link">
+                    <div class="card-icon" style="background-color: #e8f5e9;">
+                        <i class="fas fa-list" style="color: #388e3c;"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Media Playlists</h3>
+                        <p class="stat-number">{{ total_playlist }}</p>
+                        <div class="card-subtext">
+                            <span class="badge active">{{ playlist_active }} Active</span>
+                            <span class="badge expired">{{ playlist_expired }} Expired</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-crown"></i> Top Creator & Users</h2>
+                </div>
+                <div class="performance-content">
+                    <div class="top-creator-section">
+                        <h3>Top Creator</h3>
+                        <div class="creator-info">
+                            <div class="creator-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="creator-details">
+                                <h4>{{ top_creator.username }}</h4>
+                                <div class="creator-stats">
+                                    <span class="creator-stat">{{ top_creator.content_count }} Content</span>
+                                    <span class="creator-stat">{{ top_creator.playlist_count }} Playlists</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="top-users-section">
+                        <h3>Top 3 Users</h3>
+                        {% for user in top_users %}
+                        <div class="user-item">
+                            <div class="user-rank">{{ forloop.counter }}</div>
+                            <div class="user-info">
+                                <h4>{{ user.username }}</h4>
+                                <div class="user-stats">
+                                    <span class="user-stat"><i class="fas fa-sign-in-alt"></i> {{ user.login_count }} logins</span>
+                                    <span class="user-stat"><i class="fas fa-clock"></i> {{ user.usage_time }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="middle-schedules">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-clock"></i> Upcoming Schedules</h2>
+                    <a href="/schedules/" class="view-all-btn">View All</a>
+                </div>
+                {% if upcoming_schedules %}
+                <div class="schedule-container">
+                    {% for schedule in upcoming_schedules|slice:":3" %}
+                    <div class="schedule-item">
+                        <div class="schedule-time">
+                            <div class="schedule-date">{{ schedule.playback_date }}</div>
+                            <div class="schedule-hours">{{ schedule.playback_start|time:"H:i" }} - {{ schedule.playback_end|time:"H:i" }}</div>
+                        </div>
+                        <div class="schedule-details">
+                            <h4>{{ schedule.schedule_name }}</h4>
+                            <p>
+                                {% if schedule.content %}
+                                    {{ schedule.content.content_name }}
+                                {% elif schedule.playlist %}
+                                    {{ schedule.playlist.playlist_name }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                                <span class="schedule-type">{{ schedule.schedule_type }}</span>
+                            </p>
+                        </div>
+                        <div class="schedule-actions">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-data">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No upcoming schedules for today or tomorrow.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-folder"></i> Storage Usage</h2>
+                </div>
+                <div class="donut-charts-container">
+                    <div class="donut-chart-item">
+                        <div class="donut-chart-wrapper">
+                            <div class="donut-chart" data-percent="{{ frontend_percentage }}" data-size="{{ frontend_size }}" data-color="#4361ee">
+                                <span class="donut-value" data-size="{{ frontend_size }}"></span>
+                            </div>
+                        </div>
+                        <div class="donut-info">
+                            <span class="folder-name">Frontend</span>
+                            <span class="folder-percent">{{ frontend_percentage }}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="donut-chart-item">
+                        <div class="donut-chart-wrapper">
+                            <div class="donut-chart" data-percent="{{ backend_percentage }}" data-size="{{ backend_size }}" data-color="#3a0ca3">
+                                <span class="donut-value" data-size="{{ backend_size }}"></span>
+                            </div>
+                        </div>
+                        <div class="donut-info">
+                            <span class="folder-name">Backend</span>
+                            <span class="folder-percent">{{ backend_percentage }}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="donut-chart-item donut-clickable" onclick="window.location.href='/recycle-bin/'">
+                        <div class="donut-chart-wrapper">
+                            <div class="donut-chart" data-percent="{{ content_percentage }}" data-size="{{ content_uploads_size }}" data-color="#7209b7">
+                                <span class="donut-value" data-size="{{ content_uploads_size }}"></span>
+                            </div>
+                        </div>
+                        <div class="donut-info">
+                            <span class="folder-name">Content Uploads</span>
+                            <span class="folder-percent">{{ content_percentage }}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="donut-chart-item donut-clickable" onclick="window.location.href='/recycle-bin-playlist/'">
+                        <div class="donut-chart-wrapper">
+                            <div class="donut-chart" data-percent="{{ playlist_percentage }}" data-size="{{ playlist_uploads_size }}" data-color="#f72585">
+                                <span class="donut-value" data-size="{{ playlist_uploads_size }}"></span>
+                            </div>
+                        </div>
+                        <div class="donut-info">
+                            <span class="folder-name">Playlist Uploads</span>
+                            <span class="folder-percent">{{ playlist_percentage }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-device-groups">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-network-wired"></i> Device Manager</h2>
+                    <a href="/device/" class="view-all-btn">View All</a>
+                </div>
+                
+                <div class="device-overview-cards">
+                    <div class="device-overview-card">
+                        <div class="device-overview-icon" style="background-color: #e3f2fd;">
+                            <i class="fas fa-tv" style="color: #1976d2;"></i>
+                        </div>
+                        <div class="device-overview-content">
+                            <h3>Total Devices</h3>
+                            <p class="device-stat-number">{{ total_device }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="device-overview-card">
+                        <div class="device-overview-icon" style="background-color: #e8f5e9;">
+                            <i class="fas fa-object-group" style="color: #388e3c;"></i>
+                        </div>
+                        <div class="device-overview-content">
+                            <h3>Groups</h3>
+                            <p class="device-stat-number">{{ total_device_group }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="device-overview-card">
+                        <div class="device-overview-icon" style="background-color: #fff3e0;">
+                            <i class="fas fa-network-wired" style="color: #f57c00;"></i>
+                        </div>
+                        <div class="device-overview-content">
+                            <h3>Online</h3>
+                            <p class="device-stat-number">
+                                <span class="online-count" style="color: #388e3c;">{{ online_device }}</span>
+                                <span style="color: #7f8c8d;">/</span>
+                                <span class="offline-count" style="color: #d32f2f;">{{ offline_device }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="device-groups-list">                    
+                    {% if device_groups %}
+                    <div class="groups-container">
+                        {% for group in device_groups %}
+                        <div class="group-card">
+                            <div class="group-header">
+                                <h4>{{ group.name }}</h4>
+                                <div class="group-status">
+                                    <span class="status-dot {{ group.status_class }}"></span>
+                                    <span class="status-text">
+                                        {{ group.online_percentage }}% Online
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="group-details">
+                                <div class="group-metric">
+                                    <span class="metric-label">Devices</span>
+                                    <span class="metric-value">{{ group.total_devices }}</span>
+                                </div>
+                                <div class="group-metric">
+                                    <span class="metric-label">Online</span>
+                                    <span class="metric-value online">{{ group.online_devices }}</span>
+                                </div>
+                                <div class="group-metric">
+                                    <span class="metric-label">Schedules</span>
+                                    <span class="metric-value">{{ group.total_schedules }}</span>
+                                </div>
+                            </div>
+                            <div class="group-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" data-width="{{ group.online_percentage }}"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>No device groups with schedules and devices found.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+        padding: 20px;
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .dashboard-header h1 {
+        margin: 0;
+        color: #2c3e50;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .realtime-clock-card {
+        padding: 5px !important;
+        margin-bottom: 5px !important;
+    }
+
+    .clock-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .clock-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        background-color: #e3f2fd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #1976d2;
+        flex-shrink: 0;
+    }
+
+    .clock-details {
+        flex: 1;
+    }
+
+    .current-time {
+        font-size: 1.4rem;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+        color: #2c3e50;
+        margin: 0 0 4px 0;
+    }
+
+    .current-date {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        font-weight: 400;
+        margin: 0;
+    }
+
+    .dashboard-main-layout {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .left-new-card {
+        width: 25%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .middle-schedules {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .right-device-groups {
+        width: 25%;
+    }
+
+    .compact-cards-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .summary-card-compact {
+        flex: 1;
+        min-width: 120px;
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    .summary-card-compact:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-card-compact .card-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .summary-card-compact .card-content {
+        flex: 1;
+    }
+
+    .summary-card-compact .card-content h3 {
+        margin: 0 0 6px 0;
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        font-weight: 500;
+    }
+
+    .summary-card-compact .stat-number {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .summary-card-compact .card-subtext {
+        margin-top: 6px;
+        display: flex;
+        gap: 6px;
+        font-size: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .top-creator-section {
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .top-creator-section h3, .top-users-section h3 {
+        margin: 0 0 12px 0;
+        font-size: 1rem;
+        color: #2c3e50;
+    }
+
+    .creator-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .creator-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #f0f2f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #7f8c8d;
+    }
+
+    .creator-details h4 {
+        margin: 0 0 6px 0;
+        font-size: 1.1rem;
+        color: #2c3e50;
+    }
+
+    .creator-stats {
+        display: flex;
+        gap: 12px;
+    }
+
+    .creator-stat {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        background-color: #f0f2f5;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding: 10px;
+        border-radius: 8px;
+        background-color: #f9fafb;
+    }
+
+    .user-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .user-rank {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #eef2ff;
+        color: #4361ee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .user-info h4 {
+        margin: 0 0 4px 0;
+        font-size: 0.95rem;
+        color: #2c3e50;
+    }
+
+    .user-stats {
+        display: flex;
+        gap: 10px;
+    }
+
+    .user-stat {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .device-overview-cards {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .device-overview-card {
+        flex: 1;
+        min-width: 80px;
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .device-overview-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+
+    .device-overview-content h3 {
+        margin: 0 0 8px 0;
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        font-weight: 500;
+    }
+
+    .device-stat-number {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .donut-charts-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 10px 0;
+    }
+
+    .donut-chart-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        min-width: 120px;
+    }
+
+    .donut-chart-wrapper {
+        position: relative;
+        width: 100px;
+        height: 100px;
+    }
+
+    .donut-chart {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(
+            var(--donut-color) calc(var(--percent) * 3.6deg), 
+            #f0f0f0 calc(var(--percent) * 3.6deg)
+        );
+    }
+
+    .donut-chart::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 70%;
+        height: 70%;
+        background: white;
+        border-radius: 50%;
+    }
+
+    .donut-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: 700;
+        font-size: 14px;
+        text-align: center;
+        width: 100%;
+        z-index: 2;
+    }
+
+    .donut-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        text-align: center;
+    }
+
+    .card-link {
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        transition: all 0.2s ease;
+    }
+
+    .card-link:hover {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .donut-clickable {
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .donut-clickable:hover {
+        transform: scale(1.05);
+    }
+
+    .folder-percent {
+        color: #7f8c8d;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .dashboard-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 0;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .card-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .view-all-btn {
+        background: none;
+        border: none;
+        color: #4361ee;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .device-groups-list {
+        margin-top: 20px;
+    }
+
+    .device-groups-title {
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        color: #2c3e50;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .groups-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .group-card {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 16px;
+    }
+
+    .group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .group-header h4 {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #2c3e50;
+    }
+
+    .group-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .status-dot.online {
+        background-color: #4caf50;
+    }
+
+    .status-dot.partial {
+        background-color: #ff9800;
+    }
+
+    .status-dot.offline {
+        background-color: #f44336;
+    }
+
+    .status-text {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
+    .group-details {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .group-metric {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .metric-label {
+        font-size: 0.75rem;
+        color: #7f8c8d;
+    }
+
+    .metric-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .metric-value.online {
+        color: #388e3c;
+    }
+
+    .group-progress {
+        width: 100%;
+    }
+
+    .progress-bar {
+        height: 6px;
+        background-color: #e0e0e0;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .schedule-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .schedule-item {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        background-color: #f9fafb;
+        border-radius: 8px;
+        gap: 16px;
+    }
+
+    .schedule-time {
+        min-width: 90px;
+        text-align: center;
+    }
+
+    .schedule-date {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+    }
+
+    .schedule-hours {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-top: 4px;
+    }
+
+    .schedule-details {
+        flex-grow: 1;
+    }
+
+    .schedule-details h4 {
+        margin: 0 0 4px 0;
+        font-size: 1rem;
+        color: #2c3e50;
+    }
+
+    .schedule-details p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .schedule-type {
+        background-color: #eef2ff;
+        color: #4361ee;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+    }
+
+    .schedule-actions {
+        color: #7f8c8d;
+        cursor: pointer;
+    }
+
+    .badge {
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .badge.active {
+        background-color: #e8f5e9;
+        color: #388e3c;
+    }
+
+    .badge.expired {
+        background-color: #ffebee;
+        color: #d32f2f;
+    }
+
+    .badge.online {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 40px 20px;
+        color: #7f8c8d;
+    }
+
+    .no-data i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .no-data p {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 1200px) {
+        .dashboard-main-layout {
+            flex-direction: column;
+        }
+        
+        .left-new-card, .middle-schedules, .right-device-groups {
+            width: 100%;
+        }
+        
+        .compact-cards-row {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        
+        .summary-card-compact {
+            flex: 1;
+            min-width: 220px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .donut-charts-container {
+            justify-content: center;
+        }
+        
+        .device-overview-cards {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        
+        .device-overview-card {
+            flex: 1;
+            min-width: 120px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .summary-card-compact {
+            min-width: 100%;
+        }
+        
+        .schedule-item {
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
+        }
+        
+        .donut-charts-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .donut-chart-item {
+            min-width: 130px;
+        }
+        
+        .device-overview-cards {
+            flex-direction: column;
+        }
+
+        .realtime-clock-card {
+            flex-direction: column;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .current-time {
+            font-size: 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .donut-charts-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .creator-info, .user-item {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .creator-stats, .user-stats {
+            justify-content: center;
+        }
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateClock() {
+            const now = new Date();
+            
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+            
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            const dayName = days[now.getDay()];
+            const day = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            const dateString = `${dayName}, ${day} ${month} ${year}`;
+            
+            const timeElement = document.getElementById('current-time');
+            const dateElement = document.getElementById('current-date');
+            
+            if (timeElement) timeElement.textContent = timeString;
+            if (dateElement) dateElement.textContent = dateString;
+        }
+        
+        updateClock();
+        setInterval(updateClock, 1000);
+        
+        const progressBars = document.querySelectorAll('.progress-fill');
+        progressBars.forEach(bar => {
+            const width = bar.getAttribute('data-width');
+            if (width) {
+                bar.style.width = width + '%';
+                
+                const percentage = parseInt(width);
+                if (percentage >= 75) {
+                    bar.style.backgroundColor = '#4caf50';
+                } else if (percentage >= 50) {
+                    bar.style.backgroundColor = '#ff9800';
+                } else {
+                    bar.style.backgroundColor = '#f44336';
+                }
+            }
+        });
+        
+        const donutCharts = document.querySelectorAll('.donut-chart');
+        donutCharts.forEach(chart => {
+            const percent = chart.getAttribute('data-percent');
+            const size = chart.getAttribute('data-size');
+            const color = chart.getAttribute('data-color');
+            
+            chart.style.setProperty('--percent', percent);
+            chart.style.setProperty('--donut-color', color);
+            
+            const valueElement = chart.querySelector('.donut-value');
+            if (valueElement && size) {
+                const mbSize = parseFloat(size);
+                valueElement.textContent = mbSize.toFixed(1) + ' MB';
+                
+                if (mbSize < 50) {
+                    valueElement.style.color = '#388e3c'; 
+                } else if (mbSize < 100) {
+                    valueElement.style.color = '#f57c00'; 
+                } else {
+                    valueElement.style.color = '#d32f2f'; 
+                }
+            }
+        });
+        
+        const animateElements = () => {
+            const elements = [
+                ...document.querySelectorAll('.realtime-clock-card'),
+                ...document.querySelectorAll('.summary-card-compact'),
+                ...document.querySelectorAll('.dashboard-card:not(.realtime-clock-card)')
+            ];
+            
+            elements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 80);
+            });
+        };
+
+        const addHoverAnimations = () => {
+            const cardLinks = document.querySelectorAll('.card-link');
+            cardLinks.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.transition = 'transform 0.2s ease';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            const dashboardCards = document.querySelectorAll('.dashboard-card');
+            dashboardCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.08)';
+                    this.style.transition = 'box-shadow 0.3s ease';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
+                });
+            });
+
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const targetWidth = bar.getAttribute('data-width') + '%';
+                bar.style.width = '0%';
+                
+                setTimeout(() => {
+                    bar.style.transition = 'width 1s ease-out';
+                    bar.style.width = targetWidth;
+                }, 500);
+            });
+
+            const clockIcon = document.querySelector('.realtime-clock-card .clock-icon');
+            if (clockIcon) {
+                setInterval(() => {
+                    clockIcon.style.transform = 'scale(1.1)';
+                    clockIcon.style.transition = 'transform 0.2s ease';
+                    
+                    setTimeout(() => {
+                        clockIcon.style.transform = 'scale(1)';
+                    }, 200);
+                }, 2000);
+            }
+        };
+
+        animateElements();
+        addHoverAnimations();
+    });
+</script>

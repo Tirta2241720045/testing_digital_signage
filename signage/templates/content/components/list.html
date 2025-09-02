@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content List</title>
+</head>
+<body>
+
+<div class="content-list-wrapper">
+    <div class="content-list-container" id="unique-content-list">
+        <div class="content-list-scroll-container">
+            <div class="content-list" id="unique-content-list-items">
+                {% for item in contents %}
+                    <div class="content-item">
+                        <div class="content-preview">
+                            {% if item.file_type_content == 'Image' %}
+                                <img src="{{ item.file.url }}" alt="{{ item.content_name }}" class="content-image">
+                            {% elif item.file_type_content == 'Video' %}
+                                <div class="video-container">
+                                    <video class="content-video">
+                                        <source src="{{ item.file.url }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div class="video-play-icon">▶</div>
+                                </div>
+                            {% else %}
+                                <div class="file-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="content-name">{{ item.content_name }}</div>
+                        <div class="content-meta">
+                            <span class="content-date">{{ item.date_modified|date:"M d, Y" }}</span>
+                            <span class="content-creator">{{ item.creator.username }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="no-content">No contents available.</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="content-list-controls">
+            <div class="control-group">
+                <button id="unique-content-sort-toggle" class="sort-button" data-sort="asc">
+                    <span class="sort-text">A-Z</span>
+                    <span class="sort-arrow">↓</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.content-list-wrapper {
+    width: 100%;
+    height: 80vh; 
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#unique-content-list {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    padding: 1rem;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+#unique-content-list .content-list-controls {
+    display: flex;
+    justify-content: flex-start; 
+    align-items: center;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    flex-shrink: 0; 
+}
+
+#unique-content-list .control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#unique-content-list .sort-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-width: 80px;
+    justify-content: center;
+}
+
+#unique-content-list .sort-button:hover {
+    background-color: #f1f3f5;
+    border-color: #adb5bd;
+}
+
+#unique-content-list .sort-text {
+    font-weight: 600;
+}
+
+#unique-content-list .sort-arrow {
+    font-size: 0.9rem;
+}
+
+.content-list-scroll-container {
+    flex: 1; 
+    overflow-y: auto;
+    padding-right: 8px; 
+}
+
+#unique-content-list .content-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 0.5rem 0.5rem 0.5rem 0;
+}
+
+#unique-content-list .content-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    position: relative;
+}
+
+#unique-content-list .content-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+#unique-content-list .content-preview {
+    width: 100%;
+    height: 160px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+#unique-content-list .content-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#unique-content-list .video-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#unique-content-list .content-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#unique-content-list .video-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+#unique-content-list .file-icon {
+    width: 48px;
+    height: 48px;
+    color: #6c757d;
+}
+
+#unique-content-list .content-name {
+    padding: 0.75rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#unique-content-list .content-meta {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+    border-top: 1px solid #f1f3f5;
+}
+
+#unique-content-list .no-content {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.content-list-scroll-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.content-list-scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.content-list-scroll-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.content-list-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contentList = document.getElementById('unique-content-list-items');
+    const sortButton = document.getElementById('unique-content-sort-toggle');
+    let currentSort = 'asc';
+    
+    if (sortButton) {
+        sortButton.addEventListener('click', function() {
+            currentSort = currentSort === 'asc' ? 'desc' : 'asc';
+            this.setAttribute('data-sort', currentSort);
+            
+            const sortText = this.querySelector('.sort-text');
+            const arrow = this.querySelector('.sort-arrow');
+            
+            if (currentSort === 'asc') {
+                sortText.textContent = 'A-Z';
+                arrow.textContent = '↓';
+            } else {
+                sortText.textContent = 'Z-A';
+                arrow.textContent = '↑';
+            }
+            
+            const items = Array.from(contentList.querySelectorAll('.content-item'));
+            
+            items.sort((a, b) => {
+                const nameA = a.querySelector('.content-name').textContent.toLowerCase();
+                const nameB = b.querySelector('.content-name').textContent.toLowerCase();
+                
+                return currentSort === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+            });
+            
+            contentList.innerHTML = '';
+            items.forEach(item => {
+                contentList.appendChild(item);
+            });
+        });
+    }
+
+    if (contentList) {
+        function attachVideoEvents() {
+            contentList.querySelectorAll('.video-container').forEach(container => {
+                const video = container.querySelector('video');
+                if (video) {
+                    container.addEventListener('mouseenter', () => {
+                        video.play().catch(e => console.log("Autoplay prevented:", e));
+                    });
+                    container.addEventListener('mouseleave', () => {
+                        video.pause();
+                        video.currentTime = 0;
+                    });
+                }
+            });
+        }
+        
+        attachVideoEvents();
+    }
+});
+</script>
+
+</body>
+</html>

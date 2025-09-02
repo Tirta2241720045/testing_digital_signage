@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" playlist="width=device-width, initial-scale=1.0">
+    <title>playlist List</title>
+</head>
+<body>
+
+<div class="playlist-list-wrapper">
+    <div class="playlist-list-container" id="unique-playlist-list">
+        <div class="playlist-list-scroll-container">
+            <div class="playlist-list" id="unique-playlist-list-items">
+                {% for item in playlists %}
+                    <div class="playlist-item">
+                        <div class="playlist-preview">
+                            {% if item.file_type_playlist == 'Image' %}
+                                <img src="{{ item.file.url }}" alt="{{ item.playlist_name }}" class="playlist-image">
+                            {% elif item.file_type_playlist == 'Video' %}
+                                <div class="video-container">
+                                    <video class="playlist-video">
+                                        <source src="{{ item.file.url }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div class="video-play-icon">▶</div>
+                                </div>
+                            {% else %}
+                                <div class="file-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="playlist-name">{{ item.playlist_name }}</div>
+                        <div class="playlist-meta">
+                            <span class="playlist-date">{{ item.date_modified|date:"M d, Y" }}</span>
+                            <span class="playlist-creator">{{ item.creator.username }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="no-playlist">No playlists available.</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="playlist-list-controls">
+            <div class="control-group">
+                <button id="unique-playlist-sort-toggle" class="sort-button" data-sort="asc">
+                    <span class="sort-text">A-Z</span>
+                    <span class="sort-arrow">↓</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.playlist-list-wrapper {
+    width: 100%;
+    height: 80vh; 
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#unique-playlist-list {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    padding: 1rem;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+#unique-playlist-list .playlist-list-controls {
+    display: flex;
+    justify-content: flex-start; 
+    align-items: center;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    flex-shrink: 0; 
+}
+
+#unique-playlist-list .control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#unique-playlist-list .sort-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-width: 80px;
+    justify-content: center;
+}
+
+#unique-playlist-list .sort-button:hover {
+    background-color: #f1f3f5;
+    border-color: #adb5bd;
+}
+
+#unique-playlist-list .sort-text {
+    font-weight: 600;
+}
+
+#unique-playlist-list .sort-arrow {
+    font-size: 0.9rem;
+}
+
+.playlist-list-scroll-container {
+    flex: 1; 
+    overflow-y: auto;
+    padding-right: 8px; 
+}
+
+#unique-playlist-list .playlist-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 0.5rem 0.5rem 0.5rem 0;
+}
+
+#unique-playlist-list .playlist-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    position: relative;
+}
+
+#unique-playlist-list .playlist-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+#unique-playlist-list .playlist-preview {
+    width: 100%;
+    height: 160px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+#unique-playlist-list .playlist-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#unique-playlist-list .video-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#unique-playlist-list .playlist-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#unique-playlist-list .video-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+#unique-playlist-list .file-icon {
+    width: 48px;
+    height: 48px;
+    color: #6c757d;
+}
+
+#unique-playlist-list .playlist-name {
+    padding: 0.75rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#unique-playlist-list .playlist-meta {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+    border-top: 1px solid #f1f3f5;
+}
+
+#unique-playlist-list .no-playlist {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.playlist-list-scroll-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.playlist-list-scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.playlist-list-scroll-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.playlist-list-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
+
+<script>
+document.addEventListener('DOMplaylistLoaded', function() {
+    const playlistList = document.getElementById('unique-playlist-list-items');
+    const sortButton = document.getElementById('unique-playlist-sort-toggle');
+    let currentSort = 'asc';
+    
+    if (sortButton) {
+        sortButton.addEventListener('click', function() {
+            currentSort = currentSort === 'asc' ? 'desc' : 'asc';
+            this.setAttribute('data-sort', currentSort);
+            
+            const sortText = this.querySelector('.sort-text');
+            const arrow = this.querySelector('.sort-arrow');
+            
+            if (currentSort === 'asc') {
+                sortText.textplaylist = 'A-Z';
+                arrow.textplaylist = '↓';
+            } else {
+                sortText.textplaylist = 'Z-A';
+                arrow.textplaylist = '↑';
+            }
+            
+            const items = Array.from(playlistList.querySelectorAll('.playlist-item'));
+            
+            items.sort((a, b) => {
+                const nameA = a.querySelector('.playlist-name').textplaylist.toLowerCase();
+                const nameB = b.querySelector('.playlist-name').textplaylist.toLowerCase();
+                
+                return currentSort === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+            });
+            
+            playlistList.innerHTML = '';
+            items.forEach(item => {
+                playlistList.appendChild(item);
+            });
+        });
+    }
+
+    if (playlistList) {
+        function attachVideoEvents() {
+            playlistList.querySelectorAll('.video-container').forEach(container => {
+                const video = container.querySelector('video');
+                if (video) {
+                    container.addEventListener('mouseenter', () => {
+                        video.play().catch(e => console.log("Autoplay prevented:", e));
+                    });
+                    container.addEventListener('mouseleave', () => {
+                        video.pause();
+                        video.currentTime = 0;
+                    });
+                }
+            });
+        }
+        
+        attachVideoEvents();
+    }
+});
+</script>
+
+</body>
+</html>

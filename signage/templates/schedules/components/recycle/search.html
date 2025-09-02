@@ -1,0 +1,150 @@
+<form id="search-form" method="get" class="search-container">
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <input type="hidden" name="order" value="{{ order }}">
+    <input type="hidden" name="view" value="{{ request.GET.view|default:'table' }}" id="view-state">
+    
+    <div class="search-wrapper">
+        <div class="search-input-container">
+            <img src="/media/assets/search.png" class="search-icon" alt="Search">
+            <input 
+                type="text" 
+                name="q" 
+                placeholder="Search schedules..." 
+                value="{{ request.GET.q }}" 
+                class="search-input"
+                autocomplete="off"
+            >
+            <button type="submit" class="search-button" aria-label="Search">
+                <img src="/media/assets/search.png" class="search-button-icon" alt="Search">
+            </button>
+        </div>
+    </div>
+</form>
+
+<style>
+.search-container {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.search-wrapper {
+    display: inline-block;
+    position: relative;
+}
+
+.search-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 320px;
+    height: 40px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.search-input-container:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    width: 18px;
+    height: 18px;
+    filter: invert(68%) sepia(4%) saturate(628%) hue-rotate(185deg) brightness(93%) contrast(85%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.search-input {
+    flex: 1;
+    height: 100%;
+    padding: 0 50px 0 42px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    color: #374151;
+    font-weight: 400;
+}
+
+.search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.search-button {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: #3b82f6;
+    border: none;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.search-button:hover {
+    background: #2563eb;
+    transform: translateY(-50%) scale(1.02);
+}
+
+.search-button:active {
+    background: #1d4ed8;
+    transform: translateY(-50%) scale(0.98);
+}
+
+.search-button-icon {
+    width: 16px;
+    height: 16px;
+    filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(288deg) brightness(102%) contrast(102%);
+}
+
+.search-input:focus {
+    outline: none;
+}
+
+@media (max-width: 480px) {
+    .search-input-container {
+        width: 280px;
+    }
+}
+
+.search-container.compact .search-input-container {
+    width: 260px;
+    height: 36px;
+}
+
+.search-container.compact .search-input {
+    font-size: 13px;
+    padding: 0 44px 0 38px;
+}
+
+.search-container.compact .search-icon {
+    width: 16px;
+    height: 16px;
+    left: 10px;
+}
+
+.search-container.compact .search-button {
+    width: 28px;
+    height: 28px;
+}
+
+.search-container.compact .search-button-icon {
+    width: 14px;
+    height: 14px;
+}
+</style>
