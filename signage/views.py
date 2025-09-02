@@ -26,7 +26,6 @@ from .forms import ContentForm, PlaylistForm, ResetPasswordForm, SignUpForm, Man
 from .models import Content, Device, DeviceGroup,  Playlist, Schedule
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
-from pyautogui import resolution
 from PIL import Image, ImageEnhance
 import json
 import logging
